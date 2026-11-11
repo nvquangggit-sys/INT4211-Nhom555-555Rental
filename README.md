@@ -1,5 +1,7 @@
 # 555Rental - Hệ thống quản lý nhà trọ - phòng cho thuê
 
+[![Backend tests](https://github.com/nvquangggit-sys/INT4211-Nhom555-555Rental/actions/workflows/backend-test.yml/badge.svg)](https://github.com/nvquangggit-sys/INT4211-Nhom555-555Rental/actions/workflows/backend-test.yml)
+
 Đồ án cuối kỳ môn **INT4211 - Lập trình trên các thiết bị di động** (VHU), đề 12.
 
 Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
