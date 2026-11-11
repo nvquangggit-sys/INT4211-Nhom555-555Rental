@@ -544,11 +544,14 @@ curl -X POST https://rental-nhom555-api.onrender.com/auth/dang-nhap \
 
 ### 6.8. Trạng thái triển khai
 
-- `render.yaml`, `.env.example`, hướng dẫn Supabase/Render đã hoàn tất.
-- Repository sẵn sàng để Render Blueprint đọc.
-- Link production: `https://rental-nhom555-api.onrender.com` (cần deploy bằng
-  tài khoản Render của nhóm và cập nhật lại nếu Render cấp domain khác).
-- Trước khi nộp: chạy checklist mục 9.2 và ghi ảnh chụp `/health` từ máy khác.
+- Đã push `main` lên GitHub; Render tự deploy theo commit `c4459d4`.
+- `GET https://rental-nhom555-api.onrender.com/health` trả `200` với đúng cấu
+  trúc mới (`ok`, `ten`, `phien_ban`, `db`).
+- Hiện `"db": "khong ket noi duoc"` vì service Render chưa có `DATABASE_URL`
+  (và `JWT_SECRET`, biến Supabase Storage). Sau khi điền đủ biến ở mục 6.3 và
+  chạy `schema.sql` + `seed.sql` trên Supabase, `/health` phải trả `"db": "ok"`,
+  `GET /phong` trả `200` thay vì `500`.
+- Trước khi nộp: chạy checklist mục 9.4 và ghi ảnh chụp `/health` từ máy khác.
 
 ---
 
@@ -556,9 +559,18 @@ curl -X POST https://rental-nhom555-api.onrender.com/auth/dang-nhap \
 
 ### 7.1. Cách chạy
 
-Bộ kiểm thử end-to-end dùng PGlite (PostgreSQL nhúng) + socket server, chạy
-`schema.sql`, `seed.sql`, khởi động Express trên cổng test rồi gọi API thật bằng
-`fetch`. Kết quả lần chạy cuối: **73/73 ca đạt**.
+Bộ kiểm thử end-to-end nằm trong repo tại `backend/test/`, dùng PGlite
+(PostgreSQL nhúng) + socket server, chạy `schema.sql`, `seed.sql`, khởi động
+Express trên cổng test rồi gọi API thật bằng `fetch`.
+
+```bash
+cd backend
+npm install
+npm test           # test:sql + test:api
+```
+
+GitHub Actions chạy lại toàn bộ bộ test mỗi lần push vào `main`
+(`.github/workflows/backend-test.yml`). Kết quả lần chạy cuối: **73/73 ca đạt**.
 
 ### 7.2. Chín ca kiểm thử backend
 
@@ -589,6 +601,8 @@ Bộ kiểm thử end-to-end dùng PGlite (PostgreSQL nhúng) + socket server, c
 ### 7.4. Minh chứng
 
 - Kết quả console: `=== KẾT QUẢ: 73/73 đạt, 0 hỏng ===`.
+- Kết quả GitHub Actions (workflow `Backend tests`) là minh chứng dạng văn bản,
+  không cần chụp tay.
 - Ảnh chụp Postman/console và `/health` cần chèn vào báo cáo PDF:
   `[chèn ảnh: kết quả 73/73]`, `[chèn ảnh: /health db ok]`,
   `[chèn ảnh: Postman 403 khi quản lý sửa biểu giá]`.
@@ -644,12 +658,13 @@ Bộ kiểm thử end-to-end dùng PGlite (PostgreSQL nhúng) + socket server, c
   hành hóa đơn hàng loạt trong transaction, chống phát hành trùng.
 - Bảo mật cơ bản tốt: bcrypt, JWT, SQL tham số, không trả mật khẩu, `.env`
   không commit.
-- Kiểm thử thực tế 73 ca, có cả rollback và SQL injection.
+- Kiểm thử thực tế 73 ca, có cả rollback và SQL injection; mã test nằm trong
+  repo và chạy tự động trên GitHub Actions.
 - Tài liệu API đầy đủ, có Postman collection 46 request.
 
 ### 9.2. Điểm cần cải thiện
 
-- Chưa có test tự động chạy trong CI; hiện kiểm thử bằng script + Postman.
+- Bộ test chạy trên PGlite; chưa chạy trên PostgreSQL thật (Supabase) trong CI.
 - Chưa tích hợp VietQR động, chưa xuất PDF hợp đồng/hóa đơn.
 - Chưa có thông báo đẩy; app Client mới dùng màn hình nhắc hạn.
 - Render Free ngủ, Supabase Free pause; cần thao tác thủ công trước demo.
@@ -663,7 +678,7 @@ Bộ kiểm thử end-to-end dùng PGlite (PostgreSQL nhúng) + socket server, c
 3. Thông báo đẩy khi hóa đơn đến hạn, sự cố được xử lý, lịch xem được xác nhận.
 4. Tách vai trò chi tiết hơn (kế toán, nhân viên kỹ thuật).
 5. Thêm audit log cho thao tác xóa/sửa tiền.
-6. Viết test tự động trong CI, chạy trên PostgreSQL thật.
+6. Chạy bộ test hiện có trên PostgreSQL thật (Supabase) trong CI.
 
 ### 9.4. Checklist trước khi nộp
 

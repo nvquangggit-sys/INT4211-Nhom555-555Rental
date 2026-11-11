@@ -102,6 +102,9 @@ INT4211-Nhom555-555Rental/
 │   ├── .env.example                # mẫu biến môi trường (không có secret thật)
 │   ├── postman/
 │   │   └── 555Rental.postman_collection.json
+│   ├── test/
+│   │   ├── schema-seed.test.js     # chạy schema.sql + seed.sql, kiểm số lượng
+│   │   └── api.test.js             # 73 ca end-to-end trên PGlite
 │   └── src/
 │       ├── index.js                # Express app, /health, error handler
 │       ├── db.js                   # pool pg + hàm transaction
@@ -239,7 +242,19 @@ UNION ALL SELECT 'lich_xem_phong', count(*) FROM lich_xem_phong;
 
 ## Kiểm thử API
 
-Đã chạy bộ kiểm thử end-to-end **73 ca**, kết quả **73/73 đạt**, bao gồm:
+Bộ kiểm thử tự động nằm ngay trong repo (`backend/test/`), dùng PGlite
+(PostgreSQL nhúng) nên **không cần cài PostgreSQL hay Docker**:
+
+```bash
+cd backend
+npm install          # lần đầu, cài cả devDependencies
+npm test             # chạy test:sql rồi test:api
+# hoặc chạy riêng
+npm run test:sql     # schema.sql + seed.sql, kiểm tra đủ số lượng
+npm run test:api     # 73 ca end-to-end gọi API thật qua HTTP
+```
+
+Kết quả lần chạy cuối: **73/73 ca đạt**. Bộ test bao gồm:
 
 - Health check, đăng ký, đăng nhập, sai mật khẩu → 401.
 - Không token → 401; sai vai trò → 403 (kể cả `QUAN_LY` xem doanh thu / sửa biểu giá).
@@ -254,6 +269,8 @@ UNION ALL SELECT 'lich_xem_phong', count(*) FROM lich_xem_phong;
 
 Chi tiết 9 ca kiểm thử backend và kết quả thực tế nằm trong
 [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md).
+GitHub Actions chạy lại `npm test` mỗi lần push vào `main` (workflow
+`.github/workflows/backend-test.yml`).
 
 ### Import Postman
 
