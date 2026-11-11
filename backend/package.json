@@ -4,10 +4,12 @@
   "description": "Backend he thong quan ly nha tro - INT4211 de 12 - Nhom 555",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:sql && npm run test:api",
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "check": "node --check src/index.js"
+    "check": "node --check src/index.js",
+    "test:sql": "node test/schema-seed.test.js",
+    "test:api": "node test/api.test.js"
   },
   "keywords": [],
   "author": "",
@@ -24,5 +26,9 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.5.0",
     "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
+    "@electric-sql/pglite-socket": "^0.2.19"
   }
 }
