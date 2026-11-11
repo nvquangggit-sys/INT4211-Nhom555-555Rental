@@ -544,13 +544,21 @@ curl -X POST https://rental-nhom555-api.onrender.com/auth/dang-nhap \
 
 ### 6.8. Trạng thái triển khai
 
-- Đã push `main` lên GitHub; Render tự deploy theo commit `c4459d4`.
-- `GET https://rental-nhom555-api.onrender.com/health` trả `200` với đúng cấu
-  trúc mới (`ok`, `ten`, `phien_ban`, `db`).
-- Hiện `"db": "khong ket noi duoc"` vì service Render chưa có `DATABASE_URL`
-  (và `JWT_SECRET`, biến Supabase Storage). Sau khi điền đủ biến ở mục 6.3 và
-  chạy `schema.sql` + `seed.sql` trên Supabase, `/health` phải trả `"db": "ok"`,
-  `GET /phong` trả `200` thay vì `500`.
+- **CSDL Supabase:** đã tạo project, chạy `schema.sql` + `seed.sql` thành công
+  trên PostgreSQL 17 (Session pooler, region `ap-southeast-1`). Kiểm tra lại:
+  60 phòng, 45 hợp đồng, 315 chỉ số, 270 hóa đơn, 1350 chi tiết, 234 thanh toán,
+  3 khu trọ, 47 người dùng, 44 hóa đơn quá hạn.
+- **Backend trên CSDL thật:** đã chạy smoke test 18/18 ca đạt ngay trên Supabase
+  (health, đăng nhập 3 vai trò, 401/403, tìm phòng, hợp đồng, hóa đơn, báo cáo,
+  chặn chỉ số lùi, SQL injection) — dữ liệu mẫu không bị thay đổi.
+- **Render:** đã push `main`, Render tự deploy code mới; `/health` trả `200`
+  đúng cấu trúc (`ok`, `ten`, `phien_ban`, `db`).
+- **Còn lại:** service Render chưa có biến môi trường nên `"db"` báo lỗi. Cần
+  điền ở **Environment** (không commit): `DATABASE_URL` (chuỗi Session pooler
+  cổng `5432`), `JWT_SECRET` (≥ 32 ký tự), `PGSSL=true`, `SUPABASE_URL`,
+  `SUPABASE_SERVICE_KEY`, `SUPABASE_BUCKET=anh`, `NODE_ENV=production`.
+  Render tự restart; sau đó `/health` phải trả `"db": "ok"` và `GET /phong`
+  trả `200` thay vì `500`.
 - Trước khi nộp: chạy checklist mục 9.4 và ghi ảnh chụp `/health` từ máy khác.
 
 ---
@@ -607,6 +615,20 @@ GitHub Actions chạy lại toàn bộ bộ test mỗi lần push vào `main`
   `[chèn ảnh: kết quả 73/73]`, `[chèn ảnh: /health db ok]`,
   `[chèn ảnh: Postman 403 khi quản lý sửa biểu giá]`.
 
+### 7.5. Kiểm thử trên PostgreSQL thật (Supabase)
+
+Ngày 11/11/2026, chạy `schema.sql` + `seed.sql` trên project Supabase của nhóm
+rồi khởi động backend trỏ vào CSDL thật (SSL, Session pooler). Smoke test
+**18/18 ca đạt**:
+
+- `/health` trả `200` + `"db": "ok"`.
+- Đăng nhập đủ 3 vai trò bằng tài khoản seed; thiếu token `401`, sai vai trò `403`.
+- Đếm đúng dữ liệu: 3 khu, 9 phòng trống, 45 hợp đồng, ≥ 270 hóa đơn.
+- Báo cáo doanh thu đúng cấu trúc; `QUAN_LY` bị `403`.
+- `/hop-dong/cua-toi`, `/nhac-han` trả đúng cho người thuê.
+- Chặn chỉ số cuối < đầu `400`; SQL injection ở tìm phòng không ảnh hưởng bảng.
+- Sau khi chạy, số dòng `chi_so_dien_nuoc` vẫn là 315 → không phát sinh ghi rác.
+
 ---
 
 ## 8. Phân công và tiến độ (phần thành viên A)
@@ -658,8 +680,9 @@ GitHub Actions chạy lại toàn bộ bộ test mỗi lần push vào `main`
   hành hóa đơn hàng loạt trong transaction, chống phát hành trùng.
 - Bảo mật cơ bản tốt: bcrypt, JWT, SQL tham số, không trả mật khẩu, `.env`
   không commit.
-- Kiểm thử thực tế 73 ca, có cả rollback và SQL injection; mã test nằm trong
-  repo và chạy tự động trên GitHub Actions.
+- Kiểm thử thực tế 73 ca trên PGlite, 18 ca smoke trên PostgreSQL thật
+  (Supabase), có cả rollback và SQL injection; mã test nằm trong repo và chạy
+  tự động trên GitHub Actions.
 - Tài liệu API đầy đủ, có Postman collection 46 request.
 
 ### 9.2. Điểm cần cải thiện
