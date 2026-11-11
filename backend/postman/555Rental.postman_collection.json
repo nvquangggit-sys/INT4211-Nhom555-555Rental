@@ -1,0 +1,540 @@
+{
+  "info": {
+    "_postman_id": "55555555-5555-4555-8555-555555555555",
+    "name": "555Rental - INT4211 - Nhóm 555",
+    "description": "Bộ sưu tập API backend Hệ thống quản lý nhà trọ (Đề 12).\n\nCách dùng:\n1. Chạy backend và import file này.\n2. Chạy lần lượt các request trong folder 0. Auth để tự lưu token vào biến collection.\n3. Các request còn lại dùng token tương ứng.\n\nTài khoản seed: chutro@555rental.vn / quanly@555rental.vn / nguoithue01@555rental.vn, mật khẩu 123456.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "tokenChuTro", "value": "" },
+    { "key": "tokenQuanLy", "value": "" },
+    { "key": "tokenNguoiThue", "value": "" },
+    { "key": "khuTroId", "value": "1" },
+    { "key": "phongId", "value": "16" },
+    { "key": "hopDongId", "value": "1" },
+    { "key": "hoaDonId", "value": "1" },
+    { "key": "thang", "value": "2026-11" }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Đăng ký người thuê",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{$randomEmail}}\",\n  \"matKhau\": \"123456\",\n  \"hoTen\": \"Người Thuê Postman\",\n  \"sdt\": \"0909555555\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/dang-ky", "host": ["{{baseUrl}}"], "path": ["auth", "dang-ky"] }
+          }
+        },
+        {
+          "name": "Đăng nhập chủ trọ",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json();", "if (j.token) pm.collectionVariables.set('tokenChuTro', j.token);"] }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"chutro@555rental.vn\",\n  \"matKhau\": \"123456\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/dang-nhap", "host": ["{{baseUrl}}"], "path": ["auth", "dang-nhap"] }
+          }
+        },
+        {
+          "name": "Đăng nhập quản lý",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json();", "if (j.token) pm.collectionVariables.set('tokenQuanLy', j.token);"] }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"quanly@555rental.vn\",\n  \"matKhau\": \"123456\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/dang-nhap", "host": ["{{baseUrl}}"], "path": ["auth", "dang-nhap"] }
+          }
+        },
+        {
+          "name": "Đăng nhập người thuê",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json();", "if (j.token) pm.collectionVariables.set('tokenNguoiThue', j.token);"] }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"nguoithue01@555rental.vn\",\n  \"matKhau\": \"123456\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/dang-nhap", "host": ["{{baseUrl}}"], "path": ["auth", "dang-nhap"] }
+          }
+        },
+        {
+          "name": "Hồ sơ của tôi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/toi", "host": ["{{baseUrl}}"], "path": ["auth", "toi"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Công khai",
+      "item": [
+        {
+          "name": "Health",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] } }
+        },
+        {
+          "name": "Tìm phòng trống",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/phong?trangThai=TRONG&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["phong"],
+              "query": [
+                { "key": "trangThai", "value": "TRONG" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tìm phòng theo khu vực + giá",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/phong?khuVuc=Th%E1%BB%A7%20%C4%90%E1%BB%A9c&giaTu=2000000&giaDen=5000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["phong"],
+              "query": [
+                { "key": "khuVuc", "value": "Thủ Đức" },
+                { "key": "giaTu", "value": "2000000" },
+                { "key": "giaDen", "value": "5000000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Chi tiết phòng",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/phong/{{phongId}}", "host": ["{{baseUrl}}"], "path": ["phong", "{{phongId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Người thuê",
+      "item": [
+        {
+          "name": "Đặt lịch xem phòng",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"phong_id\": {{phongId}},\n  \"thoi_gian\": \"2027-01-15T09:00:00.000Z\"\n}" },
+            "url": { "raw": "{{baseUrl}}/lich-xem-phong", "host": ["{{baseUrl}}"], "path": ["lich-xem-phong"] }
+          }
+        },
+        {
+          "name": "Lịch xem của tôi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" }],
+            "url": { "raw": "{{baseUrl}}/lich-xem-phong/cua-toi", "host": ["{{baseUrl}}"], "path": ["lich-xem-phong", "cua-toi"] }
+          }
+        },
+        {
+          "name": "Hợp đồng của tôi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" }],
+            "url": { "raw": "{{baseUrl}}/hop-dong/cua-toi", "host": ["{{baseUrl}}"], "path": ["hop-dong", "cua-toi"] }
+          }
+        },
+        {
+          "name": "Hóa đơn của tôi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" }],
+            "url": { "raw": "{{baseUrl}}/hoa-don/cua-toi", "host": ["{{baseUrl}}"], "path": ["hoa-don", "cua-toi"] }
+          }
+        },
+        {
+          "name": "Lịch sử thanh toán của tôi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" }],
+            "url": { "raw": "{{baseUrl}}/thanh-toan/cua-toi", "host": ["{{baseUrl}}"], "path": ["thanh-toan", "cua-toi"] }
+          }
+        },
+        {
+          "name": "Gửi xác nhận chuyển khoản",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"hoa_don_id\": {{hoaDonId}},\n  \"so_tien\": 100000,\n  \"hinh_thuc\": \"CHUYEN_KHOAN\",\n  \"anh_bien_lai\": \"https://picsum.photos/seed/bienlai/600/800\"\n}" },
+            "url": { "raw": "{{baseUrl}}/thanh-toan", "host": ["{{baseUrl}}"], "path": ["thanh-toan"] }
+          }
+        },
+        {
+          "name": "Báo sự cố",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"phong_id\": 1,\n  \"loai\": \"Hỏng điện\",\n  \"mo_ta\": \"Ổ điện bị chập\",\n  \"anh_url\": \"https://picsum.photos/seed/suco-postman/800/600\"\n}" },
+            "url": { "raw": "{{baseUrl}}/bao-su-co", "host": ["{{baseUrl}}"], "path": ["bao-su-co"] }
+          }
+        },
+        {
+          "name": "Sự cố của tôi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-su-co/cua-toi", "host": ["{{baseUrl}}"], "path": ["bao-su-co", "cua-toi"] }
+          }
+        },
+        {
+          "name": "Nhắc hạn",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenNguoiThue}}" }],
+            "url": { "raw": "{{baseUrl}}/nhac-han", "host": ["{{baseUrl}}"], "path": ["nhac-han"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Khu trọ & phòng",
+      "item": [
+        {
+          "name": "Danh sách khu trọ",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/khu-tro", "host": ["{{baseUrl}}"], "path": ["khu-tro"] }
+          }
+        },
+        {
+          "name": "Chi tiết khu trọ",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/khu-tro/{{khuTroId}}", "host": ["{{baseUrl}}"], "path": ["khu-tro", "{{khuTroId}}"] }
+          }
+        },
+        {
+          "name": "Tạo khu trọ",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenChuTro}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"ten\": \"Khu trọ Postman\",\n  \"dia_chi\": \"1 Đường Test\",\n  \"phuong_xa\": \"Phường Test, TP.HCM\",\n  \"tien_ich\": \"Wifi, giữ xe\",\n  \"bieu_gia\": { \"gia_dien\": 3800, \"gia_nuoc\": 18000, \"phi_rac\": 30000, \"phi_gui_xe\": 100000 }\n}" },
+            "url": { "raw": "{{baseUrl}}/khu-tro", "host": ["{{baseUrl}}"], "path": ["khu-tro"] }
+          }
+        },
+        {
+          "name": "Tạo phòng",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenChuTro}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"khu_tro_id\": {{khuTroId}},\n  \"so_phong\": \"P-{{$randomInt}}\",\n  \"dien_tich\": 25,\n  \"gia_thue\": 3200000,\n  \"suc_chua\": 3,\n  \"trang_thai\": \"TRONG\"\n}" },
+            "url": { "raw": "{{baseUrl}}/phong", "host": ["{{baseUrl}}"], "path": ["phong"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Hợp đồng",
+      "item": [
+        {
+          "name": "Danh sách hợp đồng",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/hop-dong", "host": ["{{baseUrl}}"], "path": ["hop-dong"] }
+          }
+        },
+        {
+          "name": "Tạo hợp đồng",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenChuTro}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"phong_id\": {{phongId}},\n  \"nguoi_thue_id\": 3,\n  \"bat_dau\": \"2027-01-01\",\n  \"ket_thuc\": \"2028-01-01\",\n  \"tien_coc\": 3000000,\n  \"so_nguoi\": 2\n}" },
+            "url": { "raw": "{{baseUrl}}/hop-dong", "host": ["{{baseUrl}}"], "path": ["hop-dong"] }
+          }
+        },
+        {
+          "name": "Hủy hợp đồng",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenChuTro}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"trang_thai\": \"DA_HUY\"\n}" },
+            "url": { "raw": "{{baseUrl}}/hop-dong/{{hopDongId}}", "host": ["{{baseUrl}}"], "path": ["hop-dong", "{{hopDongId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Biểu giá & chỉ số",
+      "item": [
+        {
+          "name": "Danh sách biểu giá",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": { "raw": "{{baseUrl}}/bieu-gia", "host": ["{{baseUrl}}"], "path": ["bieu-gia"] }
+          }
+        },
+        {
+          "name": "Quản lý sửa biểu giá (mong đợi 403)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"gia_dien\": 4000\n}" },
+            "url": { "raw": "{{baseUrl}}/bieu-gia/{{khuTroId}}", "host": ["{{baseUrl}}"], "path": ["bieu-gia", "{{khuTroId}}"] }
+          }
+        },
+        {
+          "name": "Chủ trọ sửa biểu giá",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenChuTro}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"gia_dien\": 3900\n}" },
+            "url": { "raw": "{{baseUrl}}/bieu-gia/{{khuTroId}}", "host": ["{{baseUrl}}"], "path": ["bieu-gia", "{{khuTroId}}"] }
+          }
+        },
+        {
+          "name": "Danh sách chỉ số",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/chi-so-dien-nuoc?khuTro={{khuTroId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chi-so-dien-nuoc"],
+              "query": [{ "key": "khuTro", "value": "{{khuTroId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Ghi chỉ số (có cảnh báo nếu tăng vọt)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenChuTro}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"phong_id\": 1,\n  \"thang\": \"{{thang}}\",\n  \"dien_cuoi\": 999999,\n  \"nuoc_cuoi\": 99999\n}" },
+            "url": { "raw": "{{baseUrl}}/chi-so-dien-nuoc", "host": ["{{baseUrl}}"], "path": ["chi-so-dien-nuoc"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Hóa đơn & thanh toán",
+      "item": [
+        {
+          "name": "Danh sách hóa đơn",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/hoa-don?thang={{thang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hoa-don"],
+              "query": [{ "key": "thang", "value": "{{thang}}" }]
+            }
+          }
+        },
+        {
+          "name": "Phát hành hóa đơn hàng loạt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/hoa-don/phat-hanh?thang={{thang}}&khuTro={{khuTroId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hoa-don", "phat-hanh"],
+              "query": [
+                { "key": "thang", "value": "{{thang}}" },
+                { "key": "khuTro", "value": "{{khuTroId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Chi tiết hóa đơn",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/hoa-don/{{hoaDonId}}", "host": ["{{baseUrl}}"], "path": ["hoa-don", "{{hoaDonId}}"] }
+          }
+        },
+        {
+          "name": "Danh sách thanh toán chờ xác nhận",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/thanh-toan", "host": ["{{baseUrl}}"], "path": ["thanh-toan"] }
+          }
+        },
+        {
+          "name": "Xác nhận thanh toán",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/thanh-toan/1/xac-nhan", "host": ["{{baseUrl}}"], "path": ["thanh-toan", "1", "xac-nhan"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Lịch xem, sự cố, người dùng",
+      "item": [
+        {
+          "name": "Lịch xem chờ xác nhận",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/lich-xem-phong?trangThai=CHO_XAC_NHAN",
+              "host": ["{{baseUrl}}"],
+              "path": ["lich-xem-phong"],
+              "query": [{ "key": "trangThai", "value": "CHO_XAC_NHAN" }]
+            }
+          }
+        },
+        {
+          "name": "Xác nhận lịch xem",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"trang_thai\": \"DA_XAC_NHAN\"\n}" },
+            "url": { "raw": "{{baseUrl}}/lich-xem-phong/1", "host": ["{{baseUrl}}"], "path": ["lich-xem-phong", "1"] }
+          }
+        },
+        {
+          "name": "Danh sách sự cố",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-su-co", "host": ["{{baseUrl}}"], "path": ["bao-su-co"] }
+          }
+        },
+        {
+          "name": "Xử lý sự cố",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"trang_thai\": \"DA_XU_LY\"\n}" },
+            "url": { "raw": "{{baseUrl}}/bao-su-co/1", "host": ["{{baseUrl}}"], "path": ["bao-su-co", "1"] }
+          }
+        },
+        {
+          "name": "Danh sách người thuê",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/nguoi-dung?vaiTro=NGUOI_THUE",
+              "host": ["{{baseUrl}}"],
+              "path": ["nguoi-dung"],
+              "query": [{ "key": "vaiTro", "value": "NGUOI_THUE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Báo cáo",
+      "item": [
+        {
+          "name": "Tổng quan",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-cao/tong-quan", "host": ["{{baseUrl}}"], "path": ["bao-cao", "tong-quan"] }
+          }
+        },
+        {
+          "name": "Công nợ",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-cao/cong-no", "host": ["{{baseUrl}}"], "path": ["bao-cao", "cong-no"] }
+          }
+        },
+        {
+          "name": "Tỷ lệ lấp đầy",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-cao/lap-day", "host": ["{{baseUrl}}"], "path": ["bao-cao", "lap-day"] }
+          }
+        },
+        {
+          "name": "Doanh thu (chủ trọ)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenChuTro}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-cao/doanh-thu", "host": ["{{baseUrl}}"], "path": ["bao-cao", "doanh-thu"] }
+          }
+        },
+        {
+          "name": "Doanh thu (quản lý - mong đợi 403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-cao/doanh-thu", "host": ["{{baseUrl}}"], "path": ["bao-cao", "doanh-thu"] }
+          }
+        },
+        {
+          "name": "Tiêu thụ bất thường",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenQuanLy}}" }],
+            "url": { "raw": "{{baseUrl}}/bao-cao/tieu-thu-bat-thuong", "host": ["{{baseUrl}}"], "path": ["bao-cao", "tieu-thu-bat-thuong"] }
+          }
+        }
+      ]
+    }
+  ]
+}

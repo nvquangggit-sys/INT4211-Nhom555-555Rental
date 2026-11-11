@@ -1,0 +1,29 @@
+# Render Blueprint cho backend nhóm 555.
+# Cách dùng: Render -> New -> Blueprint -> chọn repository này.
+# Sau khi tạo, vào Environment điền các biến có sync: false.
+services:
+  - type: web
+    name: rental-nhom555-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PGSSL
+        value: "true"
+      - key: JWT_HAN
+        value: 7d
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: anh
