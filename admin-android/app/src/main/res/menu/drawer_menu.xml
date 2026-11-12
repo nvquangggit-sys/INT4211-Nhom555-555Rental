@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_tong_quan"
+            android:icon="@drawable/ic_home"
+            android:title="Tổng quan" />
+        <item
+            android:id="@+id/nav_khu_tro"
+            android:icon="@drawable/ic_room"
+            android:title="Khu trọ" />
+        <item
+            android:id="@+id/nav_phong"
+            android:icon="@drawable/ic_room"
+            android:title="Phòng" />
+        <item
+            android:id="@+id/nav_hop_dong"
+            android:icon="@drawable/ic_contract"
+            android:title="Hợp đồng" />
+        <item
+            android:id="@+id/nav_chi_so"
+            android:icon="@drawable/ic_meter"
+            android:title="Ghi chỉ số điện nước" />
+        <item
+            android:id="@+id/nav_hoa_don"
+            android:icon="@drawable/ic_invoice"
+            android:title="Hóa đơn" />
+        <item
+            android:id="@+id/nav_thanh_toan"
+            android:icon="@drawable/ic_payment"
+            android:title="Thanh toán" />
+        <item
+            android:id="@+id/nav_su_co"
+            android:icon="@drawable/ic_issue"
+            android:title="Sự cố" />
+        <item
+            android:id="@+id/nav_lich_xem"
+            android:icon="@drawable/ic_calendar"
+            android:title="Lịch xem phòng" />
+        <item
+            android:id="@+id/nav_bao_cao"
+            android:icon="@drawable/ic_chart"
+            android:title="Báo cáo" />
+    </group>
+
+    <item android:title="Tài khoản">
+        <menu>
+            <item
+                android:id="@+id/nav_doi_api"
+                android:icon="@drawable/ic_settings"
+                android:title="Địa chỉ API" />
+            <item
+                android:id="@+id/nav_dang_xuat"
+                android:icon="@drawable/ic_logout"
+                android:title="Đăng xuất" />
+        </menu>
+    </item>
+</menu>
