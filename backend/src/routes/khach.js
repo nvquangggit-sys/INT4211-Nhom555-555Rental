@@ -4,10 +4,23 @@ const { xacThuc, choPhep } = require('../middleware/auth');
 const { asyncHandler } = require('../utils/async');
 const { LoiApi } = require('../utils/loi');
 const { upload, luuAnh } = require('../utils/upload');
-const { laThang, soNguyen, chuoi } = require('../utils/kiem-tra');
+const { laThang, soNguyen, soThuc, chuoi } = require('../utils/kiem-tra');
 
 // File này là phần route phía khách (thành viên C phụ trách theo phân công).
 // Thành viên A dựng sẵn để cả nhóm có API thật chạy song song.
+
+// Trạng thái hiệu lực của hóa đơn, suy ra từ dữ liệu nên không bị "đóng băng"
+// ở giá trị cũ trong cột trang_thai:
+// - đã thu đủ -> DA_THU
+// - quá hạn hơn 10 ngày mà chưa thu đủ -> QUA_HAN
+// - đã thu một phần -> MOT_PHAN
+// - còn lại -> CHUA_THU
+const TRANG_THAI_HOA_DON = `CASE
+  WHEN hd.tong_tien <= hd.da_thu THEN 'DA_THU'
+  WHEN hd.trang_thai = 'QUA_HAN' OR hd.han_thanh_toan < CURRENT_DATE - 10 THEN 'QUA_HAN'
+  WHEN hd.da_thu > 0 THEN 'MOT_PHAN'
+  ELSE 'CHUA_THU'
+END`;
 
 function chon(o, ...ten) {
   for (const k of ten) if (o && o[k] !== undefined && o[k] !== null) return o[k];
@@ -45,8 +58,8 @@ router.get('/phong', asyncHandler(async (req, res) => {
   }
   if (req.query.giaTu) them('p.gia_thue >= ?', soNguyen(req.query.giaTu, { min: 0, ten: 'Giá từ' }));
   if (req.query.giaDen) them('p.gia_thue <= ?', soNguyen(req.query.giaDen, { min: 0, ten: 'Giá đến' }));
-  if (req.query.dienTichTu) them('p.dien_tich >= ?', Number(req.query.dienTichTu));
-  if (req.query.dienTichDen) them('p.dien_tich <= ?', Number(req.query.dienTichDen));
+  if (req.query.dienTichTu) them('p.dien_tich >= ?', soThuc(req.query.dienTichTu, { min: 0, ten: 'Diện tích từ' }));
+  if (req.query.dienTichDen) them('p.dien_tich <= ?', soThuc(req.query.dienTichDen, { min: 0, ten: 'Diện tích đến' }));
   if (req.query.sucChua) them('p.suc_chua >= ?', soNguyen(req.query.sucChua, { min: 1, ten: 'Sức chứa' }));
   if (req.query.khuTro) them('p.khu_tro_id = ?', soNguyen(req.query.khuTro, { min: 1, ten: 'Mã khu trọ' }));
   if (req.query.q) them('p.so_phong ILIKE ?', `%${String(req.query.q).trim()}%`);
@@ -59,8 +72,9 @@ router.get('/phong', asyncHandler(async (req, res) => {
     them('p.trang_thai = ?', trangThai);
   }
 
-  const limit = Math.min(Number(req.query.limit) || 50, 100);
-  const page = Math.max(Number(req.query.page) || 1, 1);
+  // Chặn limit âm/0 gây lỗi LIMIT của PostgreSQL; tối đa 100 để bảo vệ máy chủ.
+  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+  const page = Math.max(Math.floor(Number(req.query.page) || 1), 1);
   const offset = (page - 1) * limit;
   ts.push(limit, offset);
 
@@ -195,7 +209,8 @@ router.get('/hoa-don/cua-toi', xacThuc, choPhep('NGUOI_THUE'), asyncHandler(asyn
   }
 
   const r = await truyVan(
-    `SELECT hd.*, p.id AS phong_id, p.so_phong, k.ten AS ten_khu,
+    `SELECT hd.*, ${TRANG_THAI_HOA_DON} AS trang_thai,
+            p.id AS phong_id, p.so_phong, k.ten AS ten_khu,
             (hd.tong_tien - hd.da_thu)::int AS con_no,
             (CURRENT_DATE - hd.han_thanh_toan)::int AS so_ngay_qua_han,
             cs.dien_dau, cs.dien_cuoi, cs.nuoc_dau, cs.nuoc_cuoi,
@@ -340,7 +355,8 @@ router.get('/bao-su-co/cua-toi', xacThuc, choPhep('NGUOI_THUE'), asyncHandler(as
 // ---------------------------------------------------------------------
 router.get('/nhac-han', xacThuc, choPhep('NGUOI_THUE'), asyncHandler(async (req, res) => {
   const hoaDon = await truyVan(
-    `SELECT hd.id, hd.thang, hd.tong_tien, hd.da_thu, hd.han_thanh_toan, hd.trang_thai,
+    `SELECT hd.id, hd.thang, hd.tong_tien, hd.da_thu, hd.han_thanh_toan,
+            ${TRANG_THAI_HOA_DON} AS trang_thai,
             (hd.tong_tien - hd.da_thu)::int AS con_no,
             (hd.han_thanh_toan - CURRENT_DATE)::int AS so_ngay_con_lai,
             p.so_phong, k.ten AS ten_khu
