@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Rental555" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/brand_700</item>
+        <item name="colorPrimaryVariant">@color/brand_900</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/brand_500</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:statusBarColor">@color/brand_900</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <style name="Widget.Rental555.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
+        <item name="android:background">@color/brand_700</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="subtitleTextColor">@color/brand_200</item>
+    </style>
+
+    <style name="Widget.Rental555.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/divider</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+    </style>
+
+    <style name="Text.Rental555.Label" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Text.Rental555.Value" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

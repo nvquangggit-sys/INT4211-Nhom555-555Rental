@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Cho phép gọi API local (http://10.0.2.2:3000) khi phát triển.
+         Production dùng https://... nên không ảnh hưởng bảo mật. -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
