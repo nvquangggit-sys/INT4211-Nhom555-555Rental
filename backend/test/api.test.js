@@ -91,6 +91,12 @@ function kiemTra(ten, dieuKien, chiTiet) {
     r = await goi('GET', '/auth/toi', { token: admin });
     kiemTra('GET /auth/toi có token trả đúng hồ sơ', r.status === 200 && r.body.email === 'chutro@555rental.vn', () => JSON.stringify(r.body));
 
+    // Token ký bằng thuật toán khác HS256 phải bị từ chối (chống alg confusion)
+    const jwtLib = require('jsonwebtoken');
+    const tokenHS512 = jwtLib.sign({ id: adminId, vaiTro: 'CHU_TRO' }, process.env.JWT_SECRET, { algorithm: 'HS512' });
+    r = await goi('GET', '/auth/toi', { token: tokenHS512 });
+    kiemTra('Token ký HS512 bị từ chối 401', r.status === 401, () => JSON.stringify(r.body));
+
     // 3. Phân quyền
     r = await goi('GET', '/khu-tro', { token: tenant });
     kiemTra('Người thuê gọi /khu-tro trả 403', r.status === 403, () => JSON.stringify(r.body));
@@ -121,6 +127,15 @@ function kiemTra(ten, dieuKien, chiTiet) {
     const conBang = await client.query("SELECT count(*)::int AS n FROM information_schema.tables WHERE table_name='phong'");
     kiemTra('Thử SQL injection không làm mất bảng phong', r.status === 200 && conBang.rows[0].n === 1, () => JSON.stringify(r.body));
 
+    r = await goi('GET', '/phong?dienTichTu=abc');
+    kiemTra('Lọc diện tích không phải số trả 400', r.status === 400, () => JSON.stringify(r.body));
+
+    r = await goi('GET', '/phong?dienTichTu=25&dienTichDen=20&trangThai=ALL');
+    kiemTra('Lọc khoảng diện tích hợp lệ trả 200', r.status === 200 && Array.isArray(r.body), () => JSON.stringify(r.body));
+
+    r = await goi('GET', '/phong?limit=-5');
+    kiemTra('limit âm được kẹp về 1, không trả 500', r.status === 200 && Array.isArray(r.body) && r.body.length === 1, () => JSON.stringify(r.body && r.body.length));
+
     r = await goi('GET', '/phong/16');
     kiemTra('GET /phong/:id công khai trả chi tiết phòng', r.status === 200 && r.body.so_phong === '116', () => JSON.stringify(r.body));
 
@@ -132,7 +147,7 @@ function kiemTra(ten, dieuKien, chiTiet) {
       token: admin,
       body: { phong_id: 16, nguoi_thue_id: tenantId, bat_dau: '2026-11-01', ket_thuc: '2027-11-01', tien_coc: 3000000, so_nguoi: 2 },
     });
-    kiemTra('POST /hop-dong tạo hợp đồng cho phòng trống trả 201', r.status === 201 && r.body.trang_thai === 'HIEU_LUC', () => JSON.stringify(r.body));
+    kiemTra('POST /hop-dong tạo hợp đồng cho phòng trống trả 201', r.status === 201 && r.body.trang_thai === 'HIEU_LUC' && r.body.ten_khu, () => JSON.stringify(r.body));
     const hopDongMoi = r.body.id;
 
     r = await goi('POST', '/hop-dong', {
@@ -155,6 +170,15 @@ function kiemTra(ten, dieuKien, chiTiet) {
 
     const p16 = await client.query('SELECT trang_thai FROM phong WHERE id=16');
     kiemTra('Hủy hợp đồng trả phòng về TRONG', p16.rows[0].trang_thai === 'TRONG', () => p16.rows[0].trang_thai);
+
+    r = await goi('PATCH', `/hop-dong/${hopDongMoi}`, { token: admin, body: { trang_thai: 'HIEU_LUC' } });
+    kiemTra('Không kích hoạt lại hợp đồng đã hủy (409)', r.status === 409, () => JSON.stringify(r.body));
+
+    r = await goi('PATCH', `/hop-dong/${hopDongMoi}`, { token: admin, body: { ket_thuc: '2026-10-01' } });
+    kiemTra('Sửa ngày kết thúc trước ngày bắt đầu trả 400', r.status === 400, () => JSON.stringify(r.body));
+
+    const p16Sau = await client.query('SELECT trang_thai FROM phong WHERE id=16');
+    kiemTra('Thao tác hợp đồng lỗi không đổi trạng thái phòng', p16Sau.rows[0].trang_thai === 'TRONG', () => p16Sau.rows[0].trang_thai);
 
     r = await goi('DELETE', '/khu-tro/1', { token: admin });
     kiemTra('Xóa khu còn phòng trả 409', r.status === 409, () => JSON.stringify(r.body));
@@ -203,6 +227,9 @@ function kiemTra(ten, dieuKien, chiTiet) {
           AND cs.thang = to_char(CURRENT_DATE - interval '1 month', 'YYYY-MM')`,
       [thangNay]
     );
+
+    r = await goi('POST', `/hoa-don/phat-hanh?thang=${thangNay}`, { token: admin });
+    kiemTra('Phát hành thiếu khuTro trả 400 với thông báo rõ', r.status === 400 && /khuTro/.test(r.body.loi || ''), () => JSON.stringify(r.body));
 
     r = await goi('POST', `/hoa-don/phat-hanh?thang=${thangNay}&khuTro=2`, { token: admin });
     kiemTra('Phát hành hóa đơn khu 2 tạo 15 hóa đơn', r.status === 201 && r.body.so_hoa_don_da_tao === 15, () => JSON.stringify(r.body && { tao: r.body.so_hoa_don_da_tao, thieu: r.body.thieu_chi_so, bo: r.body.bo_qua }));
@@ -354,6 +381,22 @@ function kiemTra(ten, dieuKien, chiTiet) {
     r = await goi('GET', '/bao-cao/tong-quan', { token: quanLy });
     kiemTra('Tổng quan quản lý KHÔNG có doanh thu', r.status === 200 && !r.body.hoa_don_thang_nay, () => JSON.stringify(r.body));
 
+    // 14b. Trạng thái hóa đơn được suy ra từ dữ liệu, không "đóng băng" theo cột cũ
+    const quaHan = await client.query(
+      `SELECT id FROM hoa_don
+        WHERE tong_tien > da_thu AND han_thanh_toan < CURRENT_DATE - 10
+        ORDER BY id LIMIT 1`
+    );
+    const hoaDonQuaHanId = quaHan.rows[0].id;
+    await client.query(`UPDATE hoa_don SET trang_thai = 'CHUA_THU' WHERE id = $1`, [hoaDonQuaHanId]);
+
+    r = await goi('GET', '/hoa-don?trangThai=QUA_HAN', { token: admin });
+    kiemTra('Hóa đơn quá hạn vẫn được nhận diện dù cột trang_thai là CHUA_THU',
+      r.status === 200 && r.body.some((x) => x.id === hoaDonQuaHanId), () => JSON.stringify(r.body && r.body.length));
+
+    r = await goi('GET', `/hoa-don/${hoaDonQuaHanId}`, { token: admin });
+    kiemTra('Chi tiết hóa đơn quá hạn trả trang_thai QUA_HAN', r.status === 200 && r.body.trang_thai === 'QUA_HAN', () => JSON.stringify(r.body && r.body.trang_thai));
+
     // 15. 404
     r = await goi('GET', '/khong-ton-tai');
     kiemTra('Đường dẫn lạ trả 404', r.status === 404, () => JSON.stringify(r.body));
@@ -364,6 +407,54 @@ function kiemTra(ten, dieuKien, chiTiet) {
 
     r = await goi('POST', '/auth/dang-ky', { body: { email: 'moi555@test.vn', matKhau: '123456', hoTen: 'Người Mới' } });
     kiemTra('Đăng ký trùng email trả 409', r.status === 409, () => JSON.stringify(r.body));
+
+    r = await goi('POST', '/auth/dang-ky', { body: { email: 'a'.repeat(115) + '@test.vn', matKhau: '123456', hoTen: 'Email Dài' } });
+    kiemTra('Đăng ký email quá 120 ký tự trả 400', r.status === 400, () => JSON.stringify(r.body));
+
+    // 17. Trường không bắt buộc gửi chuỗi rỗng thì lưu null, không lỗi 400
+    r = await goi('POST', '/khu-tro', {
+      token: admin,
+      body: { ten: 'Khu Kiểm Thử Rỗng', dia_chi: '1 Đường Kiểm Thử', phuong_xa: 'Phường Kiểm Thử', tien_ich: '' },
+    });
+    kiemTra('Tạo khu với tiện ích rỗng trả 201 và lưu null', r.status === 201 && r.body.tien_ich === null, () => JSON.stringify(r.body));
+    const khuRongId = r.body.id;
+
+    r = await goi('POST', '/phong', {
+      token: admin,
+      body: { khu_tro_id: khuRongId, so_phong: '999', dien_tich: 20, gia_thue: 2000000, suc_chua: 2, anh_url: '' },
+    });
+    kiemTra('Tạo phòng với ảnh rỗng trả 201 và lưu null', r.status === 201 && r.body.anh_url === null, () => JSON.stringify(r.body));
+
+    // 18. Chủ trọ không được thấy dữ liệu cá nhân của người thuê khu khác
+    const chuKhac = await client.query(
+      `INSERT INTO nguoi_dung (email, mat_khau_hash, ho_ten, vai_tro)
+       VALUES ('chusoi555@test.vn', 'x', 'Chủ Sở Hữu Khác', 'CHU_TRO') RETURNING id`
+    );
+    const khuKhac = await client.query(
+      `INSERT INTO khu_tro (ten, dia_chi, phuong_xa, chu_tro_id)
+       VALUES ('Khu Người Khác', '2 Đường Khác', 'Phường Khác', $1) RETURNING id`,
+      [chuKhac.rows[0].id]
+    );
+    const phongKhac = await client.query(
+      `INSERT INTO phong (khu_tro_id, so_phong, dien_tich, gia_thue, suc_chua, trang_thai)
+       VALUES ($1, '888', 20, 2000000, 2, 'DA_THUE') RETURNING id`,
+      [khuKhac.rows[0].id]
+    );
+    const nguoiThueKhac = await client.query(
+      `INSERT INTO nguoi_dung (email, mat_khau_hash, ho_ten, sdt, cccd, vai_tro)
+       VALUES ('nguoithuela555@test.vn', 'x', 'Người Thuê Lạ', '0900000000', '099999999999', 'NGUOI_THUE') RETURNING id`
+    );
+    await client.query(
+      `INSERT INTO hop_dong (phong_id, nguoi_thue_id, bat_dau, ket_thuc, tien_coc, so_nguoi, trang_thai)
+       VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE + 365, 0, 1, 'HIEU_LUC')`,
+      [phongKhac.rows[0].id, nguoiThueKhac.rows[0].id]
+    );
+
+    r = await goi('GET', '/nguoi-dung?vaiTro=NGUOI_THUE&q=nguoithuela555', { token: admin });
+    kiemTra('Chủ trọ không thấy người thuê của khu người khác', r.status === 200 && r.body.length === 0, () => JSON.stringify(r.body));
+
+    r = await goi('GET', '/nguoi-dung?vaiTro=NGUOI_THUE&q=nguoithuela555', { token: quanLy });
+    kiemTra('Quản lý vẫn thấy người thuê toàn hệ thống', r.status === 200 && r.body.length === 1, () => JSON.stringify(r.body));
 
   } catch (e) {
     console.error('LỖI TEST:', e);
