@@ -15,8 +15,8 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 **Thành viên nhóm 555**
 
 - Nguyễn Việt Quang - 231A290134 (Thành viên A: Backend + CSDL + triển khai)
-- Nguyễn Phạm Chí Thành - 231A010308 (Thành viên B: App Admin)
-- Trần Phước Vinh - 231A290104 (Thành viên C: App Client + route khách)
+- Trần Phước Vinh - 231A290104 (Thành viên B: App Admin - Android)
+- Nguyễn Phạm Chí Thành - 231A010308 (Thành viên C: App Client + route khách)
 
 ## Liên kết
 
@@ -27,7 +27,9 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
   trên Supabase Storage trả URL public (12/11/2026)
 - **Tài liệu API:** [`backend/api.md`](backend/api.md)
 - **Postman collection:** [`backend/postman/555Rental.postman_collection.json`](backend/postman/555Rental.postman_collection.json)
+- **APK Admin (release):** [`admin-android/releases/555Rental-Admin-v1.0.0.apk`](admin-android/releases/555Rental-Admin-v1.0.0.apk)
 - **Báo cáo phần Backend - CSDL - triển khai:** [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md)
+- **Báo cáo phần App Admin:** [`docs/bao-cao-muc-2-phan-tich-yeu-cau.md`](docs/bao-cao-muc-2-phan-tich-yeu-cau.md), [`docs/bao-cao-muc-5-giao-dien-admin.md`](docs/bao-cao-muc-5-giao-dien-admin.md), [`docs/bao-cao-muc-7-kiem-thu-admin.md`](docs/bao-cao-muc-7-kiem-thu-admin.md)
 
 > Render Free ngủ sau 15 phút không có request. Trước khi demo nên gọi
 > `/health` khoảng 3 phút để đánh thức service.
@@ -52,6 +54,17 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 - Xác nhận thanh toán, cập nhật công nợ và trạng thái hóa đơn.
 - Xác nhận / từ chối lịch xem phòng, xử lý sự cố.
 - Báo cáo: tổng quan, công nợ, tỷ lệ lấp đầy, doanh thu, tiêu thụ bất thường.
+
+### App Admin (Android - Java + XML)
+
+- Đăng nhập, lưu JWT, tự đăng xuất khi API trả `401`.
+- Phân quyền 2 vai trò: `CHU_TRO` thấy toàn bộ; `QUAN_LY` chỉ thấy Ghi chỉ số và Sự cố.
+- 12 màn hình: Đăng nhập, Tổng quan, Khu trọ, Phòng, Hợp đồng, Ghi chỉ số, Hóa đơn, Chi tiết hóa đơn, Thanh toán, Sự cố, Lịch xem phòng, Báo cáo.
+- 9 danh sách `RecyclerView` + Adapter + ViewHolder.
+- Form validate bằng `setError`, dialog xác nhận trước khi xóa, Snackbar phản hồi.
+- 3 trạng thái: đang tải / thành công (kể cả rỗng) / lỗi mạng có nút Thử lại.
+- Báo cáo có biểu đồ cột doanh thu và biểu đồ tròn tỷ lệ lấp đầy (MPAndroidChart).
+- Không mất dữ liệu khi xoay màn hình; APK release đã ký, cài được trên máy thật.
 
 ### Phân quyền
 
@@ -120,9 +133,22 @@ INT4211-Nhom555-555Rental/
 │       │   └── khach.js            # API công khai + người thuê
 │       └── utils/                  # lỗi, kiểm tra, quyền, upload ảnh
 ├── admin-android/                  # App Admin (Java + XML)
+│   ├── app/src/main/java/com/nhom555/rentaladmin/
+│   ├── app/src/main/res/           # layout, drawable, values, menu
+│   ├── keystore/                   # khóa ký demo
+│   ├── releases/                   # APK release đã ký
+│   └── gradlew.bat
 ├── client-flutter/                 # App Client (Flutter)
 └── docs/
-    └── BAO_CAO_THANH_VIEN_A.md     # mục 3, 4, 6, 7, 8, 9 của báo cáo
+    ├── BAO_CAO_THANH_VIEN_A.md     # mục 3, 4, 6, 7, 8, 9 của báo cáo (A)
+    ├── bao-cao-muc-2-phan-tich-yeu-cau.md
+    ├── bao-cao-muc-5-giao-dien-admin.md
+    ├── bao-cao-muc-7-kiem-thu-admin.md
+    ├── bao-cao-muc-8-9-phan-cong-tu-danh-gia.md
+    ├── huong-dan-build-apk.md
+    ├── kich-ban-video-admin.md
+    ├── cau-hoi-bao-ve-admin.md
+    └── checklist-18-muc.md
 ```
 
 ## Yêu cầu môi trường
@@ -192,6 +218,38 @@ Kiểm tra:
 ```bash
 curl http://localhost:3000/health
 ```
+
+## Chạy App Admin (Android)
+
+### Yêu cầu
+
+- Android Studio (hỗ trợ AGP 9.x), JDK 17.
+- Android SDK 37, `minSdk 24`.
+- Thiết bị Android 7.0+ hoặc emulator.
+
+### Các bước
+
+1. Mở Android Studio → **Open** → chọn thư mục `admin-android/` (không mở thư mục gốc repo).
+2. Chờ Gradle sync; cài SDK 37 nếu được nhắc.
+3. Kiểm tra `admin-android/local.properties` có `sdk.dir=...` (file này không commit).
+4. Build debug:
+   ```powershell
+   cd admin-android
+   .\gradlew.bat assembleDebug
+   ```
+5. Build release có ký:
+   ```powershell
+   .\gradlew.bat assembleRelease
+   ```
+   APK: `app/build/outputs/apk/release/app-release.apk`.
+6. Cài APK có sẵn:
+   ```powershell
+   adb install -r admin-android\releases\555Rental-Admin-v1.0.0.apk
+   ```
+
+Chi tiết keystore, lỗi cài đặt và cách đổi địa chỉ API: [`docs/huong-dan-build-apk.md`](docs/huong-dan-build-apk.md).
+
+> Khóa ký trong `admin-android/keystore/` và `keystore.properties` chỉ dùng cho đồ án. Khi triển khai thật, tạo khóa riêng và không commit mật khẩu.
 
 ## Tài khoản thử
 
@@ -321,6 +379,20 @@ Cách thủ công:
 Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 của
 [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md).
 
+## Tài liệu báo cáo
+
+| Tài liệu | Nội dung |
+|---|---|
+| [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md) | Mục 3, 4, 6, 7, 8, 9 phần Backend – CSDL – triển khai |
+| [`docs/bao-cao-muc-2-phan-tich-yeu-cau.md`](docs/bao-cao-muc-2-phan-tich-yeu-cau.md) | Mục 2: bối cảnh, phạm vi, tác nhân, use case |
+| [`docs/bao-cao-muc-5-giao-dien-admin.md`](docs/bao-cao-muc-5-giao-dien-admin.md) | Mục 5: kiến trúc, điều hướng, 12 màn hình Admin |
+| [`docs/bao-cao-muc-7-kiem-thu-admin.md`](docs/bao-cao-muc-7-kiem-thu-admin.md) | 8 ca kiểm thử App Admin |
+| [`docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md`](docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md) | Mục 8–9 phần App Admin |
+| [`docs/huong-dan-build-apk.md`](docs/huong-dan-build-apk.md) | Build, ký và cài APK release |
+| [`docs/kich-ban-video-admin.md`](docs/kich-ban-video-admin.md) | Kịch bản video phần Admin |
+| [`docs/cau-hoi-bao-ve-admin.md`](docs/cau-hoi-bao-ve-admin.md) | 6 câu hỏi bảo vệ + câu trả lời |
+| [`docs/checklist-18-muc.md`](docs/checklist-18-muc.md) | Checklist 18 mục trước khi nộp |
+
 ## Bảo mật
 
 - Mật khẩu băm bằng `bcrypt` (10 vòng), không bao giờ trả về client.
@@ -338,6 +410,14 @@ Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 củ
 - Chưa có thông báo đẩy; app Client đang dùng màn hình nhắc hạn.
 - Render Free ngủ sau 15 phút, cần đánh thức trước khi demo.
 - Supabase Free tạm dừng sau 7 ngày không hoạt động, cần khôi phục trước buổi bảo vệ.
+
+## Đóng góp
+
+| Thành viên | Phần trăm | Phần phụ trách |
+|---|---|---|
+| Nguyễn Việt Quang | 35% | Backend, CSDL, triển khai |
+| Trần Phước Vinh | 32% | App Admin (Android), báo cáo mục 2, 5, 7, 8, 9 |
+| Nguyễn Phạm Chí Thành | 33% | App Client (Flutter), route API phía khách |
 
 ## Giấy phép
 
