@@ -7,7 +7,7 @@ function xacThuc(req, res, next) {
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : null;
   if (!token) return next(new LoiApi(401, 'Thiếu token đăng nhập'));
   try {
-    req.nguoiDung = jwt.verify(token, process.env.JWT_SECRET);
+    req.nguoiDung = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch (e) {
     return next(new LoiApi(401, 'Token không hợp lệ hoặc đã hết hạn'));

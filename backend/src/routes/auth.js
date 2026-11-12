@@ -36,6 +36,8 @@ router.post('/dang-ky', asyncHandler(async (req, res) => {
   const { email, matKhau, hoTen, sdt, cccd } = req.body || {};
 
   if (!laEmail(email)) throw new LoiApi(400, 'Email không hợp lệ');
+  const emailSach = email.trim().toLowerCase();
+  if (emailSach.length > 120) throw new LoiApi(400, 'Email tối đa 120 ký tự');
   const mk = chuoi(matKhau, { ten: 'Mật khẩu', max: 100 });
   if (mk.length < MAT_KHAU_TOI_THIEU) {
     throw new LoiApi(400, `Mật khẩu phải có ít nhất ${MAT_KHAU_TOI_THIEU} ký tự`);
@@ -50,7 +52,7 @@ router.post('/dang-ky', asyncHandler(async (req, res) => {
       `INSERT INTO nguoi_dung (email, mat_khau_hash, ho_ten, sdt, cccd, vai_tro)
        VALUES ($1, $2, $3, $4, $5, 'NGUOI_THUE')
        RETURNING id, email, ho_ten, sdt, cccd, vai_tro`,
-      [email.trim().toLowerCase(), hash, ten, sdtSach, cccdSach]
+      [emailSach, hash, ten, sdtSach, cccdSach]
     );
     const nguoiDung = r.rows[0];
     res.status(201).json({ nguoiDung, token: taoToken(nguoiDung) });
