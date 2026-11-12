@@ -551,14 +551,26 @@ curl -X POST https://rental-nhom555-api.onrender.com/auth/dang-nhap \
 - **Backend trên CSDL thật:** đã chạy smoke test 18/18 ca đạt ngay trên Supabase
   (health, đăng nhập 3 vai trò, 401/403, tìm phòng, hợp đồng, hóa đơn, báo cáo,
   chặn chỉ số lùi, SQL injection) — dữ liệu mẫu không bị thay đổi.
-- **Render:** đã push `main`, Render tự deploy code mới; `/health` trả `200`
-  đúng cấu trúc (`ok`, `ten`, `phien_ban`, `db`).
-- **Còn lại:** service Render chưa có biến môi trường nên `"db"` báo lỗi. Cần
-  điền ở **Environment** (không commit): `DATABASE_URL` (chuỗi Session pooler
-  cổng `5432`), `JWT_SECRET` (≥ 32 ký tự), `PGSSL=true`, `SUPABASE_URL`,
-  `SUPABASE_SERVICE_KEY`, `SUPABASE_BUCKET=anh`, `NODE_ENV=production`.
-  Render tự restart; sau đó `/health` phải trả `"db": "ok"` và `GET /phong`
-  trả `200` thay vì `500`.
+- **Render:** đã đặt biến môi trường cho service `rental-nhom555-api` bằng
+  Render API rồi deploy lại (deploy `dep-dbqj3doae00c738i5lu0`, commit
+  `8ef5343`), trạng thái cuối `live`.
+- **Kiểm tra production sau deploy:**
+  - `GET /health` → `200` `{"ok":true,"ten":"555Rental API - Nhóm 555",
+    "phien_ban":"1.0.0",...,"db":"ok"}`.
+  - `GET /phong` → `200` (danh sách phòng trống từ CSDL thật).
+  - Đăng nhập `chutro@555rental.vn` → `200` + JWT; sai mật khẩu → `401`.
+  - `GET /hoa-don?thang=2026-10` có token → `200`; thiếu token → `401`
+    (`{"loi":"Thiếu token đăng nhập"}`).
+  - `GET /bao-cao/doanh-thu` có token → `200`, số liệu khớp seed
+    (3 khu trọ, phải thu/đã thu/còn nợ).
+- **Biến đã đặt trên Render** (giá trị thật chỉ nằm trong Environment, không
+  commit): `NODE_ENV=production`, `PGSSL=true`, `JWT_HAN=7d`,
+  `DATABASE_URL` (Session pooler cổng `5432`), `JWT_SECRET` (64 ký tự),
+  `SUPABASE_BUCKET=anh`.
+- **Còn lại (không ảnh hưởng demo CRUD):** chưa có `SUPABASE_URL` +
+  `SUPABASE_SERVICE_KEY` nên endpoint upload ảnh trả `500` với thông báo
+  "Chưa cấu hình SUPABASE_URL và SUPABASE_SERVICE_KEY". Cần dán service role
+  key của project Supabase vào **Environment** để bật Supabase Storage.
 - Trước khi nộp: chạy checklist mục 9.4 và ghi ảnh chụp `/health` từ máy khác.
 
 ---
