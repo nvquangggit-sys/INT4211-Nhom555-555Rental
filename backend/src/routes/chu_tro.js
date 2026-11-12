@@ -5,10 +5,20 @@ const { asyncHandler } = require('../utils/async');
 const { LoiApi } = require('../utils/loi');
 const { layKhu, layPhong, layHopDong } = require('../utils/quyen');
 const {
-  laNgay, laThang, soNguyen, soThuc, chuoi, thangTruoc,
+  laNgay, laThang, soNguyen, soThuc, chuoi, chuoiTuyChon, thangTruoc,
 } = require('../utils/kiem-tra');
 
 const QUAN_LY = ['CHU_TRO', 'QUAN_LY'];
+
+// Trạng thái hiệu lực của hóa đơn: tự suy ra từ số tiền và hạn thanh toán,
+// không phụ thuộc vào việc cột trang_thai đã được cập nhật hay chưa.
+// (Hóa đơn quá hạn hơn 10 ngày mà chưa thu đủ được coi là QUA_HAN.)
+const TRANG_THAI_HOA_DON = `CASE
+  WHEN hd.tong_tien <= hd.da_thu THEN 'DA_THU'
+  WHEN hd.trang_thai = 'QUA_HAN' OR hd.han_thanh_toan < CURRENT_DATE - 10 THEN 'QUA_HAN'
+  WHEN hd.da_thu > 0 THEN 'MOT_PHAN'
+  ELSE 'CHUA_THU'
+END`;
 
 // Lấy giá trị body theo snake_case hoặc camelCase để app Android/Flutter
 // gửi kiểu nào cũng nhận.
@@ -63,7 +73,7 @@ router.post('/khu-tro', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (req, re
   const ten = chuoi(chon(b, 'ten'), { ten: 'Tên khu trọ', max: 100 });
   const diaChi = chuoi(chon(b, 'dia_chi', 'diaChi'), { ten: 'Địa chỉ', max: 200 });
   const phuongXa = chuoi(chon(b, 'phuong_xa', 'phuongXa'), { ten: 'Phường/xã', max: 80 });
-  const tienIch = chon(b, 'tien_ich', 'tienIch');
+  const tienIch = chuoiTuyChon(chon(b, 'tien_ich', 'tienIch'), { ten: 'Tiện ích', max: 1000 });
   const bgBody = chon(b, 'bieu_gia', 'bieuGia') || {};
 
   const giaDien = soNguyen(chon(bgBody, 'gia_dien', 'giaDien') ?? 3800, { min: 0, ten: 'Giá điện' });
@@ -75,8 +85,7 @@ router.post('/khu-tro', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (req, re
     const kq = await c.query(
       `INSERT INTO khu_tro (ten, dia_chi, phuong_xa, chu_tro_id, tien_ich)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [ten, diaChi, phuongXa, req.nguoiDung.id,
-        tienIch ? chuoi(tienIch, { ten: 'Tiện ích', max: 1000 }) : null]
+      [ten, diaChi, phuongXa, req.nguoiDung.id, tienIch]
     );
     const khu = kq.rows[0];
     const bg = await c.query(
@@ -110,7 +119,7 @@ router.patch('/khu-tro/:id', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (re
       ten === undefined ? null : chuoi(ten, { ten: 'Tên khu trọ', max: 100 }),
       diaChi === undefined ? null : chuoi(diaChi, { ten: 'Địa chỉ', max: 200 }),
       phuongXa === undefined ? null : chuoi(phuongXa, { ten: 'Phường/xã', max: 80 }),
-      tienIch === undefined ? null : chuoi(tienIch, { ten: 'Tiện ích', max: 1000 }),
+      tienIch === undefined ? null : chuoiTuyChon(tienIch, { ten: 'Tiện ích', max: 1000 }),
       id,
     ]
   );
@@ -150,7 +159,7 @@ router.post('/phong', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (req, res)
       `INSERT INTO phong (khu_tro_id, so_phong, dien_tich, gia_thue, suc_chua, trang_thai, anh_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [khuTroId, soPhong, dienTich, giaThue, sucChua, tt,
-        anhUrl ? chuoi(anhUrl, { ten: 'Ảnh phòng', max: 1000 }) : null]
+        chuoiTuyChon(anhUrl, { ten: 'Ảnh phòng', max: 1000 })]
     );
     res.status(201).json(r.rows[0]);
   } catch (e) {
@@ -191,7 +200,7 @@ router.patch('/phong/:id', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (req,
         giaThue === undefined ? null : soNguyen(giaThue, { min: 0, ten: 'Giá thuê' }),
         sucChua === undefined ? null : soNguyen(sucChua, { min: 1, ten: 'Sức chứa' }),
         trangThai === undefined ? null : maTrangThai(trangThai, 'Trạng thái phòng', ['TRONG', 'DA_THUE', 'DANG_SUA']),
-        anhUrl === undefined ? null : chuoi(anhUrl, { ten: 'Ảnh phòng', max: 1000 }),
+        anhUrl === undefined ? null : chuoiTuyChon(anhUrl, { ten: 'Ảnh phòng', max: 1000 }),
         id,
       ]
     );
@@ -263,7 +272,8 @@ router.post('/hop-dong', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (req, r
 
   const ketQua = await trongGiaoDich(async (c) => {
     const p = await c.query(
-      `SELECT p.*, k.chu_tro_id FROM phong p JOIN khu_tro k ON k.id = p.khu_tro_id
+      `SELECT p.*, k.chu_tro_id, k.ten AS ten_khu
+         FROM phong p JOIN khu_tro k ON k.id = p.khu_tro_id
         WHERE p.id = $1 FOR UPDATE OF p`,
       [phongId]
     );
@@ -289,7 +299,7 @@ router.post('/hop-dong', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (req, r
       [phongId, nguoiThueId, batDau, ketThuc, tienCoc, soNguoi]
     );
     await c.query(`UPDATE phong SET trang_thai = 'DA_THUE' WHERE id = $1`, [phongId]);
-    return { ...hd.rows[0], so_phong: phong.so_phong, ten_khu: null };
+    return { ...hd.rows[0], so_phong: phong.so_phong, ten_khu: phong.ten_khu };
   });
   res.status(201).json(ketQua);
 }));
@@ -305,19 +315,40 @@ router.patch('/hop-dong/:id', xacThuc, choPhep('CHU_TRO'), asyncHandler(async (r
   if (trangThai === undefined && ketThuc === undefined) {
     throw new LoiApi(400, 'Cần truyền trang_thai hoặc ket_thuc');
   }
-  if (trangThai !== undefined) maTrangThai(trangThai, 'Trạng thái hợp đồng', ['HIEU_LUC', 'HET_HAN', 'DA_HUY']);
+  const trangThaiMoi = trangThai === undefined
+    ? null
+    : maTrangThai(trangThai, 'Trạng thái hợp đồng', ['HIEU_LUC', 'HET_HAN', 'DA_HUY']);
   if (ketThuc !== undefined && !laNgay(ketThuc)) throw new LoiApi(400, 'Ngày kết thúc không hợp lệ');
 
   const ketQua = await trongGiaoDich(async (c) => {
+    const cur = await c.query('SELECT * FROM hop_dong WHERE id = $1 FOR UPDATE', [id]);
+    const hienTai = cur.rows[0];
+    if (!hienTai) throw new LoiApi(404, 'Không tìm thấy hợp đồng');
+
+    // Không cho "hồi sinh" hợp đồng đã kết thúc/đã hủy: phải tạo hợp đồng mới
+    // để lịch sử và trạng thái phòng không bị sai.
+    if (trangThaiMoi === 'HIEU_LUC' && hienTai.trang_thai !== 'HIEU_LUC') {
+      throw new LoiApi(409, 'Hợp đồng đã kết thúc hoặc đã hủy, không thể kích hoạt lại. Hãy tạo hợp đồng mới.');
+    }
+
+    // Điều kiện $2 > bat_dau đặt ngay trong SQL để so sánh kiểu date chuẩn,
+    // tránh lệch múi giờ khi so sánh chuỗi ở JavaScript.
     const hd = await c.query(
       `UPDATE hop_dong SET
-         trang_thai = COALESCE($1, trang_thai),
-         ket_thuc = COALESCE($2, ket_thuc)
-       WHERE id = $3 RETURNING *`,
-      [trangThai ?? null, ketThuc ?? null, id]
+         trang_thai = COALESCE($1::varchar, trang_thai),
+         ket_thuc = COALESCE($2::date, ket_thuc)
+       WHERE id = $3
+         AND ($2::date IS NULL OR $2::date > bat_dau)
+       RETURNING *`,
+      [trangThaiMoi, ketThuc ?? null, id]
     );
+    if (!hd.rows[0]) throw new LoiApi(400, 'Ngày kết thúc phải sau ngày bắt đầu');
     const moi = hd.rows[0];
-    if (moi.trang_thai !== 'HIEU_LUC') {
+
+    if (moi.trang_thai === 'HIEU_LUC') {
+      // Khôi phục hiệu lực (chỉ khi vốn đang hiệu lực) thì phòng phải ở DA_THUE.
+      await c.query(`UPDATE phong SET trang_thai = 'DA_THUE' WHERE id = $1`, [moi.phong_id]);
+    } else {
       const conHd = await c.query(
         `SELECT count(*)::int AS n FROM hop_dong
           WHERE phong_id = $1 AND trang_thai = 'HIEU_LUC' AND id <> $2`,
@@ -525,7 +556,7 @@ router.get('/hoa-don', xacThuc, choPhep(...QUAN_LY), asyncHandler(async (req, re
   }
   if (req.query.trangThai) {
     ts.push(maTrangThai(req.query.trangThai, 'Trạng thái hóa đơn', ['CHUA_THU', 'MOT_PHAN', 'DA_THU', 'QUA_HAN']));
-    dk.push(`hd.trang_thai = $${ts.length}`);
+    dk.push(`(${TRANG_THAI_HOA_DON}) = $${ts.length}`);
   }
   if (req.query.quaHan !== undefined) {
     const ngay = soNguyen(req.query.quaHan, { min: 0, max: 3650, ten: 'Số ngày quá hạn' });
@@ -534,7 +565,8 @@ router.get('/hoa-don', xacThuc, choPhep(...QUAN_LY), asyncHandler(async (req, re
   }
 
   const r = await truyVan(
-    `SELECT hd.*, h.id AS hop_dong_id, p.so_phong, p.khu_tro_id, k.ten AS ten_khu,
+    `SELECT hd.*, ${TRANG_THAI_HOA_DON} AS trang_thai,
+            h.id AS hop_dong_id, p.so_phong, p.khu_tro_id, k.ten AS ten_khu,
             nd.ho_ten AS ten_nguoi_thue, nd.sdt AS sdt_nguoi_thue,
             p.gia_thue,
             (hd.tong_tien - hd.da_thu) AS con_no,
@@ -555,7 +587,11 @@ router.get('/hoa-don', xacThuc, choPhep(...QUAN_LY), asyncHandler(async (req, re
 router.post('/hoa-don/phat-hanh', xacThuc, choPhep(...QUAN_LY), asyncHandler(async (req, res) => {
   const thang = req.query.thang || (req.body && req.body.thang);
   if (!laThang(thang)) throw new LoiApi(400, 'Thiếu hoặc sai tham số thang (YYYY-MM)');
-  const khuTroId = soNguyen(req.query.khuTro || (req.body && req.body.khuTro), { min: 1, ten: 'Mã khu trọ' });
+  const khuTroRaw = req.query.khuTro || (req.body && req.body.khuTro);
+  if (khuTroRaw === undefined || khuTroRaw === null || khuTroRaw === '') {
+    throw new LoiApi(400, 'Thiếu tham số khuTro (mã khu trọ cần phát hành hóa đơn)');
+  }
+  const khuTroId = soNguyen(khuTroRaw, { min: 1, ten: 'Mã khu trọ' });
   await layKhu(truyVan, khuTroId, req.nguoiDung);
 
   const ketQua = await trongGiaoDich(async (c) => {
@@ -607,7 +643,9 @@ router.post('/hoa-don/phat-hanh', xacThuc, choPhep(...QUAN_LY), asyncHandler(asy
         `INSERT INTO hoa_don (hop_dong_id, thang, tong_tien, da_thu, han_thanh_toan, trang_thai)
          VALUES ($1, $2::char(7), $3, 0,
                  (to_date($2, 'YYYY-MM') + interval '1 month' + interval '9 days')::date,
-                 'CHUA_THU')
+                 CASE WHEN (to_date($2, 'YYYY-MM') + interval '1 month' + interval '9 days')::date
+                            < CURRENT_DATE - 10
+                      THEN 'QUA_HAN' ELSE 'CHUA_THU' END)
          RETURNING *`,
         [h.hop_dong_id, thang, tong]
       );
@@ -680,7 +718,8 @@ router.post('/hoa-don/phat-hanh', xacThuc, choPhep(...QUAN_LY), asyncHandler(asy
 router.get('/hoa-don/:id', xacThuc, asyncHandler(async (req, res) => {
   const id = soNguyen(req.params.id, { min: 1, ten: 'Mã hóa đơn' });
   const hd = await truyVan(
-    `SELECT hd.*, h.id AS hop_dong_id, h.nguoi_thue_id, p.id AS phong_id, p.so_phong, p.khu_tro_id,
+    `SELECT hd.*, ${TRANG_THAI_HOA_DON} AS trang_thai,
+            h.id AS hop_dong_id, h.nguoi_thue_id, p.id AS phong_id, p.so_phong, p.khu_tro_id,
             p.gia_thue, k.ten AS ten_khu, k.chu_tro_id,
             nd.ho_ten AS ten_nguoi_thue, nd.sdt AS sdt_nguoi_thue,
             (hd.tong_tien - hd.da_thu) AS con_no
@@ -845,19 +884,42 @@ router.get('/nguoi-dung', xacThuc, choPhep(...QUAN_LY), asyncHandler(async (req,
   const ts = [];
   if (req.query.vaiTro) {
     ts.push(maTrangThai(req.query.vaiTro, 'Vai trò', ['CHU_TRO', 'QUAN_LY', 'NGUOI_THUE']));
-    dk.push(`vai_tro = $${ts.length}`);
+    dk.push(`nd.vai_tro = $${ts.length}`);
   }
   if (req.query.q) {
     ts.push(`%${String(req.query.q).trim()}%`);
-    dk.push(`(ho_ten ILIKE $${ts.length} OR email ILIKE $${ts.length} OR sdt ILIKE $${ts.length})`);
+    dk.push(`(nd.ho_ten ILIKE $${ts.length} OR nd.email ILIKE $${ts.length} OR nd.sdt ILIKE $${ts.length})`);
+  }
+
+  // Bảo vệ dữ liệu cá nhân: CHU_TRO chỉ thấy chính mình và những người thuê
+  // đang/sắp thuê khu của mình, hoặc người thuê chưa có hợp đồng nào
+  // (cần cho việc tạo hợp đồng mới). Không thấy CCCD/SĐT của người lạ.
+  if (req.nguoiDung.vaiTro === 'CHU_TRO') {
+    ts.push(req.nguoiDung.id);
+    const p = `$${ts.length}`;
+    dk.push(`(
+      nd.id = ${p}
+      OR (
+        nd.vai_tro = 'NGUOI_THUE' AND (
+          NOT EXISTS (SELECT 1 FROM hop_dong h0 WHERE h0.nguoi_thue_id = nd.id)
+          OR EXISTS (
+            SELECT 1
+              FROM hop_dong h1
+              JOIN phong p1 ON p1.id = h1.phong_id
+              JOIN khu_tro k1 ON k1.id = p1.khu_tro_id
+             WHERE h1.nguoi_thue_id = nd.id AND k1.chu_tro_id = ${p}
+          )
+        )
+      )
+    )`);
   }
   ts.push(200);
 
   const r = await truyVan(
-    `SELECT id, email, ho_ten, sdt, cccd, vai_tro
-       FROM nguoi_dung
+    `SELECT nd.id, nd.email, nd.ho_ten, nd.sdt, nd.cccd, nd.vai_tro
+       FROM nguoi_dung nd
       ${dk.length ? 'WHERE ' + dk.join(' AND ') : ''}
-      ORDER BY ho_ten
+      ORDER BY nd.ho_ten
       LIMIT $${ts.length}`,
     ts
   );
@@ -955,7 +1017,8 @@ router.get('/bao-cao/cong-no', xacThuc, choPhep(...QUAN_LY), asyncHandler(async 
   );
 
   const chiTiet = await truyVan(
-    `SELECT hd.id, hd.thang, hd.tong_tien, hd.da_thu, hd.han_thanh_toan, hd.trang_thai,
+    `SELECT hd.id, hd.thang, hd.tong_tien, hd.da_thu, hd.han_thanh_toan,
+            ${TRANG_THAI_HOA_DON} AS trang_thai,
             (hd.tong_tien - hd.da_thu)::int AS con_no,
             (CURRENT_DATE - hd.han_thanh_toan)::int AS so_ngay_qua_han,
             p.so_phong, k.ten AS ten_khu, nd.ho_ten AS ten_nguoi_thue, nd.sdt

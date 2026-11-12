@@ -41,6 +41,14 @@ function chuoi(v, { ten = 'Giá trị', min = 1, max = 200, batBuoc = true } = {
   return s;
 }
 
+// Trường không bắt buộc: chuỗi rỗng hoặc chỉ có khoảng trắng được coi như "không truyền"
+// (null), tránh lỗi 400 "không được để trống" khi app gửi form rỗng.
+function chuoiTuyChon(v, opts = {}) {
+  if (v === undefined || v === null) return null;
+  if (typeof v === 'string' && v.trim() === '') return null;
+  return chuoi(v, { ...opts, batBuoc: false });
+}
+
 // Đọc query param dạng số (trả null nếu không truyền).
 function laySo(v) {
   if (v === undefined || v === null || v === '') return null;
@@ -56,5 +64,5 @@ function thangTruoc(thang) {
 }
 
 module.exports = {
-  laEmail, laThang, laNgay, soNguyen, soThuc, chuoi, laySo, thangTruoc,
+  laEmail, laThang, laNgay, soNguyen, soThuc, chuoi, chuoiTuyChon, laySo, thangTruoc,
 };
