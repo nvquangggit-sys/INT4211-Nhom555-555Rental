@@ -110,7 +110,7 @@ Body:
 ```
 
 - `201`: `{ "nguoiDung": { ... }, "token": "..." }`
-- `400`: email sai, mật khẩu dưới 6 ký tự, thiếu họ tên.
+- `400`: email sai hoặc dài quá 120 ký tự, mật khẩu dưới 6 ký tự, thiếu họ tên.
 - `409`: email hoặc CCCD đã tồn tại.
 
 ### `POST /auth/dang-nhap` - Public
@@ -410,9 +410,13 @@ hoặc gia hạn:
 { "ket_thuc": "2027-12-31" }
 ```
 
-Khi hợp đồng không còn `HIEU_LUC`, phòng được trả về `TRONG` nếu không còn hợp đồng hiệu lực khác.
+Khi hợp đồng không còn `HIEU_LUC`, phòng được trả về `TRONG` nếu không còn hợp đồng hiệu lực khác. Ngược lại, hợp đồng `HIEU_LUC` giữ phòng ở `DA_THUE`.
 
-- `200`, `400`, `403`, `404`.
+- `200`: hợp đồng sau khi cập nhật.
+- `400`: `ket_thuc` không phải ngày hợp lệ hoặc không sau `bat_dau`.
+- `403`: không quản lý hợp đồng.
+- `404`: không tìm thấy hợp đồng.
+- `409`: cố kích hoạt lại hợp đồng đã `HET_HAN` / `DA_HUY` (phải tạo hợp đồng mới).
 
 ---
 
@@ -498,6 +502,8 @@ Response `201`:
 
 Query: `khuTro`, `thang`, `trangThai` (`CHUA_THU` / `MOT_PHAN` / `DA_THU` / `QUA_HAN`), `quaHan` (số ngày).
 
+`trang_thai` trong response được **suy ra từ dữ liệu** (`tong_tien`, `da_thu`, `han_thanh_toan`) chứ không chỉ đọc cột lưu sẵn: hóa đơn chưa thu đủ và quá hạn hơn 10 ngày luôn hiển thị `QUA_HAN`, kể cả khi cột `trang_thai` trong CSDL còn là `CHUA_THU`. Nhờ vậy bộ lọc `trangThai` luôn chính xác mà không cần job cập nhật định kỳ.
+
 `200`: mảng hóa đơn kèm `so_phong`, `ten_khu`, `ten_nguoi_thue`, `con_no`, `so_ngay_qua_han`.
 
 ### `POST /hoa-don/phat-hanh` - `CHU_TRO`, `QUAN_LY`
@@ -508,6 +514,8 @@ Query bắt buộc:
 
 - `thang=YYYY-MM`
 - `khuTro=<id>`
+
+Thiếu `khuTro` trả `400` với thông báo rõ ràng (không phải lỗi kiểu dữ liệu chung chung).
 
 Ví dụ:
 
@@ -613,6 +621,11 @@ Chỉ nhận `DA_XAC_NHAN` hoặc `TU_CHOI`. `200`, `400`, `403`, `404`.
 Query: `vaiTro`, `q` (tên/email/số điện thoại). Tối đa 200 bản ghi.
 
 `200`: chỉ trả `id, email, ho_ten, sdt, cccd, vai_tro` - **không trả mật khẩu**.
+
+Phạm vi dữ liệu:
+
+- `QUAN_LY`: thấy toàn bộ tài khoản (nhân viên vận hành).
+- `CHU_TRO`: chỉ thấy chính mình và người thuê **có hợp đồng ở khu mình quản lý**, hoặc người thuê **chưa có hợp đồng nào** (để còn tạo hợp đồng mới). Không thấy CCCD/SĐT của người thuê khu khác.
 
 ---
 

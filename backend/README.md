@@ -40,7 +40,7 @@ src/
 
 test/
 ├── schema-seed.test.js   # chạy schema.sql + seed.sql, kiểm tra đủ số lượng
-└── api.test.js           # 73 ca end-to-end qua HTTP
+└── api.test.js           # 88 ca end-to-end qua HTTP
 ```
 
 ## Biến môi trường
@@ -57,7 +57,7 @@ production cần thêm `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`.
 | `npm run check` | Kiểm tra cú pháp `src/index.js` |
 | `npm test` | Chạy cả `test:sql` và `test:api` |
 | `npm run test:sql` | Chạy `schema.sql` + `seed.sql` trên PGlite, kiểm tra số lượng |
-| `npm run test:api` | 73 ca kiểm thử API end-to-end trên PGlite |
+| `npm run test:api` | 88 ca kiểm thử API end-to-end trên PGlite |
 
 Bộ test dùng PGlite (PostgreSQL nhúng) và `@electric-sql/pglite-socket`, không
 cần cài PostgreSQL hay Docker. Mã nguồn test nằm trong [`test/`](test).

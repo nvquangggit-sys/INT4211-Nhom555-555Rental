@@ -590,7 +590,7 @@ npm test           # test:sql + test:api
 ```
 
 GitHub Actions chạy lại toàn bộ bộ test mỗi lần push vào `main`
-(`.github/workflows/backend-test.yml`). Kết quả lần chạy cuối: **73/73 ca đạt**.
+(`.github/workflows/backend-test.yml`). Kết quả lần chạy cuối: **88/88 ca đạt**.
 
 ### 7.2. Chín ca kiểm thử backend
 
@@ -608,23 +608,34 @@ GitHub Actions chạy lại toàn bộ bộ test mỗi lần push vào `main`
 
 ### 7.3. Các nhóm kiểm thử khác đã chạy
 
-- Đăng ký mới `201`, trùng email `409`.
+- Đăng ký mới `201`, trùng email `409`, email quá 120 ký tự `400`.
+- Token ký HS512 (khác thuật toán của hệ thống) bị từ chối `401`.
+- Tham số tìm phòng sai (`dienTichTu=abc`) trả `400`; `limit` âm được kẹp về 1
+  thay vì gây lỗi `500`.
 - Tạo hợp đồng `201`, trùng phòng `409`, vượt sức chứa `400`, hủy hợp đồng
-  trả phòng về `TRONG`.
+  trả phòng về `TRONG`; kích hoạt lại hợp đồng đã hủy `409`; sửa `ket_thuc`
+  trước `bat_dau` `400`.
 - Xóa phòng còn hợp đồng `409`; xóa khu còn phòng `409`.
-- Phát hành hóa đơn bằng token người thuê `403`.
+- Phát hành hóa đơn bằng token người thuê `403`; thiếu `khuTro` `400` với
+  thông báo rõ.
+- Hóa đơn quá hạn được suy ra `QUA_HAN` khi đọc, kể cả khi cột `trang_thai`
+  trong CSDL còn là `CHUA_THU` (không cần job cập nhật định kỳ).
 - Xác nhận thanh toán lần 2 `409`; chuyển khoản thiếu ảnh `400`; gửi trùng
   giao dịch chờ `409`.
 - Báo cáo công nợ, lấp đầy, doanh thu, tiêu thụ bất thường, tổng quan trả đúng
   cấu trúc; `QUAN_LY` không thấy doanh thu.
+- Bảo vệ dữ liệu cá nhân: chủ trọ không thấy CCCD/SĐT của người thuê khu
+  người khác; quản lý vẫn thấy toàn hệ thống.
+- Trường không bắt buộc gửi chuỗi rỗng (`tien_ich`, `anh_url`) được lưu
+  `null` thay vì báo lỗi `400`.
 
 ### 7.4. Minh chứng
 
-- Kết quả console: `=== KẾT QUẢ: 73/73 đạt, 0 hỏng ===`.
+- Kết quả console: `=== KẾT QUẢ: 88/88 đạt, 0 hỏng ===`.
 - Kết quả GitHub Actions (workflow `Backend tests`) là minh chứng dạng văn bản,
   không cần chụp tay.
 - Ảnh chụp Postman/console và `/health` cần chèn vào báo cáo PDF:
-  `[chèn ảnh: kết quả 73/73]`, `[chèn ảnh: /health db ok]`,
+  `[chèn ảnh: kết quả 88/88]`, `[chèn ảnh: /health db ok]`,
   `[chèn ảnh: Postman 403 khi quản lý sửa biểu giá]`.
 
 ### 7.5. Kiểm thử trên PostgreSQL thật (Supabase)
@@ -663,7 +674,7 @@ rồi khởi động backend trỏ vào CSDL thật (SSL, Session pooler). Smoke
 | 11 | Deploy Render, kiểm tra 401/403 | Link API + `/health` |
 | 12 | Ghi chỉ số, chặn cuối < đầu, cảnh báo tăng vọt | Điểm nhấn 1 |
 | 13 | Phát hành hóa đơn hàng loạt, xác nhận thanh toán | Điểm nhấn 2 |
-| 14 | Báo cáo, `api.md`, Postman, kiểm thử 73 ca | Tài liệu + kết quả test |
+| 14 | Báo cáo, `api.md`, Postman, kiểm thử 88 ca | Tài liệu + kết quả test |
 | 15 | Rà soát, README, checklist bảo vệ | Sẵn sàng nộp |
 
 ### 8.3. Đóng góp GitHub
@@ -692,7 +703,7 @@ rồi khởi động backend trỏ vào CSDL thật (SSL, Session pooler). Smoke
   hành hóa đơn hàng loạt trong transaction, chống phát hành trùng.
 - Bảo mật cơ bản tốt: bcrypt, JWT, SQL tham số, không trả mật khẩu, `.env`
   không commit.
-- Kiểm thử thực tế 73 ca trên PGlite, 18 ca smoke trên PostgreSQL thật
+- Kiểm thử thực tế 88 ca trên PGlite, 18 ca smoke trên PostgreSQL thật
   (Supabase), có cả rollback và SQL injection; mã test nằm trong repo và chạy
   tự động trên GitHub Actions.
 - Tài liệu API đầy đủ, có Postman collection 46 request.

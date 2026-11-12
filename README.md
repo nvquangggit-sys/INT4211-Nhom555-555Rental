@@ -108,7 +108,7 @@ INT4211-Nhom555-555Rental/
 │   │   └── 555Rental.postman_collection.json
 │   ├── test/
 │   │   ├── schema-seed.test.js     # chạy schema.sql + seed.sql, kiểm số lượng
-│   │   └── api.test.js             # 73 ca end-to-end trên PGlite
+│   │   └── api.test.js             # 88 ca end-to-end trên PGlite
 │   └── src/
 │       ├── index.js                # Express app, /health, error handler
 │       ├── db.js                   # pool pg + hàm transaction
@@ -255,21 +255,26 @@ npm install          # lần đầu, cài cả devDependencies
 npm test             # chạy test:sql rồi test:api
 # hoặc chạy riêng
 npm run test:sql     # schema.sql + seed.sql, kiểm tra đủ số lượng
-npm run test:api     # 73 ca end-to-end gọi API thật qua HTTP
+npm run test:api     # 88 ca end-to-end gọi API thật qua HTTP
 ```
 
-Kết quả lần chạy cuối: **73/73 ca đạt**. Bộ test bao gồm:
+Kết quả lần chạy cuối: **88/88 ca đạt**. Bộ test bao gồm:
 
 - Health check, đăng ký, đăng nhập, sai mật khẩu → 401.
 - Không token → 401; sai vai trò → 403 (kể cả `QUAN_LY` xem doanh thu / sửa biểu giá).
 - Tìm phòng, lọc khu vực / giá, thử SQL injection `'; DROP TABLE phong; --`.
+- Tham số sai (`dienTichTu=abc`, `limit` âm) trả 400/được kẹp an toàn thay vì 500.
 - Tạo / hủy hợp đồng, kiểm tra phòng về `TRONG`, xóa phòng còn hợp đồng → 409.
+- Không kích hoạt lại hợp đồng đã hủy → 409; sửa `ket_thuc` trước `bat_dau` → 400.
 - Ghi chỉ số: tự lấy đầu kỳ, trùng tháng → 409, cuối < đầu → 400, cảnh báo tăng vọt.
 - Phát hành hóa đơn hàng loạt: đủ 15 hóa đơn, đủ 5 khoản, tổng chi tiết khớp tổng hóa đơn.
-- Phát hành lần 2 không nhân đôi hóa đơn.
+- Phát hành lần 2 không nhân đôi hóa đơn; thiếu `khuTro` → 400 với thông báo rõ.
+- Trạng thái `QUA_HAN` được suy ra đúng dù cột `trang_thai` còn giá trị cũ.
 - Xác nhận thanh toán cộng đúng tiền, xác nhận lần 2 → 409; ép lỗi giữa transaction → 500 và rollback giữ nguyên dữ liệu.
 - Gửi chuyển khoản thiếu ảnh → 400; trùng giao dịch chờ → 409.
 - Báo cáo công nợ, lấp đầy, doanh thu, tiêu thụ bất thường, tổng quan.
+- Token ký thuật toán khác HS256 → 401; chủ trọ không thấy CCCD/SĐT người thuê khu khác.
+- Trường không bắt buộc gửi chuỗi rỗng (`tien_ich`, `anh_url`) lưu `null`, không lỗi 400.
 
 Chi tiết 9 ca kiểm thử backend và kết quả thực tế nằm trong
 [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md).
