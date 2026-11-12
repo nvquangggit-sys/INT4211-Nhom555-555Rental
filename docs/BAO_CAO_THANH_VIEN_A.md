@@ -552,8 +552,8 @@ curl -X POST https://rental-nhom555-api.onrender.com/auth/dang-nhap \
   (health, đăng nhập 3 vai trò, 401/403, tìm phòng, hợp đồng, hóa đơn, báo cáo,
   chặn chỉ số lùi, SQL injection) — dữ liệu mẫu không bị thay đổi.
 - **Render:** đã đặt biến môi trường cho service `rental-nhom555-api` bằng
-  Render API rồi deploy lại (deploy `dep-dbqj3doae00c738i5lu0`, commit
-  `8ef5343`), trạng thái cuối `live`.
+  Render API rồi deploy lại. Bản mới nhất (`dep-dbqjhg3rjlhs73fveeug`, commit
+  `68ffe36`) trạng thái `live`; đã bật `healthCheckPath=/health`.
 - **Kiểm tra production sau deploy:**
   - `GET /health` → `200` `{"ok":true,"ten":"555Rental API - Nhóm 555",
     "phien_ban":"1.0.0",...,"db":"ok"}`.
@@ -563,14 +563,19 @@ curl -X POST https://rental-nhom555-api.onrender.com/auth/dang-nhap \
     (`{"loi":"Thiếu token đăng nhập"}`).
   - `GET /bao-cao/doanh-thu` có token → `200`, số liệu khớp seed
     (3 khu trọ, phải thu/đã thu/còn nợ).
+  - `GET /phong?dienTichTu=abc` → `400`; `GET /phong?limit=-5` → `200` và
+    kẹp còn 1 phòng (không còn lỗi `500`).
+  - `GET /hoa-don?trangThai=QUA_HAN` → `200`, 44 hóa đơn quá hạn.
+  - `GET /nguoi-dung?vaiTro=NGUOI_THUE` bằng token chủ trọ → `200`, 45 người
+    thuê (chủ trọ sở hữu cả 3 khu nên vẫn thấy đủ, không lộ dữ liệu khu khác).
+  - `POST /hoa-don/phat-hanh?thang=2026-11` thiếu `khuTro` → `400` với thông
+    báo "Thiếu tham số khuTro...".
 - **Biến đã đặt trên Render** (giá trị thật chỉ nằm trong Environment, không
   commit): `NODE_ENV=production`, `PGSSL=true`, `JWT_HAN=7d`,
   `DATABASE_URL` (Session pooler cổng `5432`), `JWT_SECRET` (64 ký tự),
-  `SUPABASE_BUCKET=anh`.
-- **Còn lại (không ảnh hưởng demo CRUD):** chưa có `SUPABASE_URL` +
-  `SUPABASE_SERVICE_KEY` nên endpoint upload ảnh trả `500` với thông báo
-  "Chưa cấu hình SUPABASE_URL và SUPABASE_SERVICE_KEY". Cần dán service role
-  key của project Supabase vào **Environment** để bật Supabase Storage.
+  `SUPABASE_BUCKET=anh`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`.
+- **Upload ảnh production:** `POST /upload/anh` (multipart field `anh`) trả
+  `201` kèm URL public trên Supabase Storage (bucket `anh`), đã kiểm tra thực tế.
 - Trước khi nộp: chạy checklist mục 9.4 và ghi ảnh chụp `/health` từ máy khác.
 
 ---

@@ -23,7 +23,8 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 - **API production:** https://rental-nhom555-api.onrender.com
 - **Health check:** https://rental-nhom555-api.onrender.com/health
 - **Trạng thái production:** đã kết nối CSDL Supabase, `/health` trả
-  `"db":"ok"`, `GET /phong` và các API có xác thực hoạt động (12/11/2026)
+  `"db":"ok"`, `GET /phong` và các API có xác thực hoạt động; upload ảnh lưu
+  trên Supabase Storage trả URL public (12/11/2026)
 - **Tài liệu API:** [`backend/api.md`](backend/api.md)
 - **Postman collection:** [`backend/postman/555Rental.postman_collection.json`](backend/postman/555Rental.postman_collection.json)
 - **Báo cáo phần Backend - CSDL - triển khai:** [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md)
