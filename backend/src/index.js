@@ -83,7 +83,8 @@ function xuLyLoi(err, req, res, next) {
   if (err.code === '23503') {
     return res.status(409).json({ loi: 'Dữ liệu đang được bảng khác tham chiếu, không thể xóa/sửa' });
   }
-  if (err.code === '23514' || err.code === '22P02' || err.code === '22007') {
+  if (err.code === '23514' || err.code === '22P02' || err.code === '22007'
+      || err.code === '22001' || err.code === '22003' || err.code === '23502') {
     return res.status(400).json({ loi: 'Dữ liệu vi phạm ràng buộc của cơ sở dữ liệu' });
   }
 
