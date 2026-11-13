@@ -100,6 +100,17 @@ adb devices
 adb install -r admin-android\releases\555Rental-Admin-v1.0.0.apk
 ```
 
+Hoặc dùng script có sẵn (cài + mở app + chụp ảnh + quay video):
+
+```powershell
+cd admin-android
+.\tools\minh-chung.ps1 -Cai
+.\tools\minh-chung.ps1 -Chup 01-cai-apk
+```
+
+Ảnh/video lưu vào `docs/minh-chung/` – xem danh sách cần chụp trong
+[`docs/minh-chung/README.md`](minh-chung/README.md).
+
 ### Cách 2: chép file
 
 1. Copy `555Rental-Admin-v1.0.0.apk` vào điện thoại (USB, Google Drive, Zalo…).

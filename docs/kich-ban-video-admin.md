@@ -52,10 +52,18 @@
 ## 3. Mẹo quay
 
 - Quay theo thứ tự trên một lần nếu có thể; nếu phải cắt, cắt ở chỗ chuyển màn hình.
-- Dùng điện thoại thật quay màn hình bằng **Screen Recorder** có micro; hoặc cài APK lên máy và quay bằng camera (không khuyến khích vì rung).
+- **Cách 1 (khuyến nghị): quay bằng `adb`** – hình sạch, không thấy tay, không rung:
+  ```powershell
+  cd admin-android
+  .\tools\minh-chung.ps1 -Quay     # Enter để bắt đầu, Enter để dừng
+  ```
+  Video lưu ở `docs/minh-chung/admin-demo.mp4`. `screenrecord` **không thu âm**, nên thu
+  giọng riêng bằng điện thoại/ tai nghe rồi ghép, hoặc đọc trực tiếp khi thuyết trình.
+- **Cách 2: quay bằng ứng dụng trên máy** – dùng Screen Recorder có micro, quay ngang.
 - Quay ngang; tắt xoay tự động để cảnh không bị xoay giữa chừng.
 - Tốc độ thao tác chậm vừa phải; dừng 1–2 giây ở mỗi kết quả quan trọng (dialog phát hành, biểu đồ).
 - Chuẩn bị cảnh dự phòng: nếu Render ngủ, quay cảnh “đang tải” rồi tua; hoặc quay trước khi họp nhóm.
+- Ảnh chụp màn hình cho báo cáo: `.\tools\minh-chung.ps1 -Chup 03-tong-quan` (danh sách đầy đủ trong `docs/minh-chung/README.md`).
 
 ## 4. Câu chuyển sang phần C
 

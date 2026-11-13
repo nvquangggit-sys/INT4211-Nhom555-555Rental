@@ -390,6 +390,7 @@ Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 củ
 | [`docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md`](docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md) | Mục 8–9 phần App Admin |
 | [`docs/huong-dan-build-apk.md`](docs/huong-dan-build-apk.md) | Build, ký và cài APK release |
 | [`docs/kich-ban-video-admin.md`](docs/kich-ban-video-admin.md) | Kịch bản video phần Admin |
+| [`docs/minh-chung/README.md`](docs/minh-chung/README.md) | Danh sách ảnh/video minh chứng và cách chụp |
 | [`docs/cau-hoi-bao-ve-admin.md`](docs/cau-hoi-bao-ve-admin.md) | 6 câu hỏi bảo vệ + câu trả lời |
 | [`docs/checklist-18-muc.md`](docs/checklist-18-muc.md) | Checklist 18 mục trước khi nộp |
 
