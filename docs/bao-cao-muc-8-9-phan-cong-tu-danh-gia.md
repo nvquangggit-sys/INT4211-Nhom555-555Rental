@@ -79,9 +79,9 @@
 
 ## 8.6. Việc còn lại trước khi nộp
 
-- Chụp đủ ảnh màn hình theo danh sách trong mục 5.10 và mục 7.
-- Quay đoạn video phần Admin theo kịch bản `docs/kich-ban-video-admin.md`.
-- Cài APK release trên máy thật, kiểm tra lại 8 ca.
+- Chụp đủ ảnh màn hình theo danh sách trong mục 5.10 và mục 7 → `docs/minh-chung/` (làm ngay, không cần chờ C).
+- Cài APK release trên máy thật, kiểm tra lại 8 ca → `admin-android\tools\minh-chung.ps1 -Cai`.
+- Quay đoạn video phần Admin theo `docs/kich-ban-video-admin.md` → **quay cuối cùng, sau khi C hoàn thiện app Client**, vì có cảnh chuyển sang phần C và cảnh liên thông Admin → Client.
 - Đối chiếu 18 mục tự kiểm trong `docs/checklist-18-muc.md`.
 
 ---

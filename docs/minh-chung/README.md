@@ -33,6 +33,12 @@ Tối thiểu để qua mục 7 và 17: `01`, `03`, `04`, `12`, `14`.
 |---|---|---|
 | `admin-demo.mp4` | Toàn bộ phần B theo `docs/kich-ban-video-admin.md`, có tiếng thuyết minh | 2:30 – 3:00 |
 
+**Thời điểm:** quay **cuối cùng, sau khi thành viên C hoàn thiện app Client** – vì cảnh cuối là
+câu chuyển sang phần C và cần cảnh liên thông “Admin thêm → Client thấy”. Điều kiện và dữ liệu
+cần nhờ C chuẩn bị: xem `docs/kich-ban-video-admin.md` mục 0.1.
+
+Ảnh chụp màn hình thì **chụp ngay được**, không cần chờ C.
+
 Nếu video nhóm ghép chung: đặt tên `admin-demo-phan-b.mp4` và ghi rõ mốc thời gian
 `1:30 – 4:20` trong video tổng.
 

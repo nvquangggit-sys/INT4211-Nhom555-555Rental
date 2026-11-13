@@ -2,6 +2,15 @@
 
 > In bảng này, cả nhóm tick từng dòng trước buổi bảo vệ. Cột “Ghi chú” ghi người chịu trách nhiệm và bằng chứng.
 
+## Thứ tự thực hiện
+
+1. **Ngay bây giờ (B)** – cài APK lên máy thật, chụp ảnh cho mục 7, 10, 11. Không phụ thuộc C.
+2. **Chờ C chốt app Client** – chụp cảnh liên thông “Admin thêm → Client thấy” cho mục 9.
+3. **Cuối cùng (B + C)** – quay video phần B **sau khi C hoàn thiện**, để câu chuyển sang phần C khớp với bản C demo thật.
+4. **Trước hạn 1 ngày** – chạy `admin-android\tools\minh-chung.ps1 -KiemTra` để chắc đủ ảnh/video, rồi tick lại toàn bộ bảng.
+
+> Video là việc cuối nhưng **không để sát hạn**: nếu C trễ, B vẫn quay phần B trước hạn 1 ngày và chỉ thu lại câu chuyển (“tiếp theo bạn C…”) sau, thay vì mất cả đoạn.
+
 | # | Hạng mục kiểm tra | Cách kiểm tra | Trạng thái | Ghi chú |
 |---|---|---|---|---|
 | 1 | `/health` trả 200 từ máy khác | Mở `https://rental-nhom555-api.onrender.com/health` trên điện thoại/trình duyệt khác | ☐ | A |
@@ -20,7 +29,7 @@
 | 14 | README đủ link API, tài khoản thử, cách chạy | Đọc `README.md` | ☑ | Đã bổ sung phần App Admin |
 | 15 | Mỗi người ≥ 15 commit tài khoản riêng | `git shortlog -sne --all` | ☑ | B: đã có 18+ commit dưới tên `Vinh`; kiểm tra lại trước khi nộp |
 | 16 | Báo cáo đủ 9 mục, có ERD + ≥ 25 ca kiểm thử | Đối chiếu `docs/` và báo cáo PDF | ☐ | Cả nhóm |
-| 17 | Video 5–8 phút, quay thật, có thuyết minh | Xem lại video trước khi nộp | ☐ | Cả nhóm – phần B: `docs/minh-chung/admin-demo.mp4` |
+| 17 | Video 5–8 phút, quay thật, có thuyết minh | Xem lại video trước khi nộp | ☐ | Cả nhóm – phần B quay **cuối cùng**, sau khi C xong: `docs/minh-chung/admin-demo.mp4` |
 | 18 | Gọi thử API 3 phút trước giờ demo | Mở `/health` + đăng nhập thử | ☐ | A |
 
 ## Ghi chú riêng cho phần App Admin

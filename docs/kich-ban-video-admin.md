@@ -13,6 +13,26 @@
 | Cửa sổ | Ẩn thanh thông báo, bật chế độ không làm phiền, cỡ chữ lớn vừa phải |
 | Dự phòng | Quay lại cảnh phát hành hóa đơn với tháng đã có hóa đơn (kết quả “đã tạo 0, bỏ qua N”) nếu lỗi mạng |
 
+## 0.1. Thời điểm quay: cuối cùng, sau khi C hoàn thiện
+
+Phần B **không quay sớm**. Hai lý do:
+
+- Cảnh cuối là câu chuyển sang phần C; nếu C còn đổi giao diện/luồng thì lời thoại và hình sẽ lệch.
+- Cần cảnh liên thông “Admin thêm phòng/khu → Client thấy”, chỉ quay được khi app Client đã ổn định.
+
+**Nhờ C chuẩn bị dữ liệu 15 phút trước khi quay** (C test nhiều sẽ xác nhận hết thanh toán và xử lý hết sự cố, khi đó màn Admin trống):
+
+| Dữ liệu | Dùng cho cảnh |
+|---|---|
+| 1 giao dịch thanh toán **chờ xác nhận**, có ảnh biên lai | 3:00 – 3:20 |
+| 1 sự cố trạng thái **MỚI**, có ảnh | 3:20 – 3:35 |
+| 1 phòng của khu demo **chưa ghi chỉ số** tháng demo | 1:55 – 2:25 |
+| 1 tháng **chưa phát hành hóa đơn** cho khu demo | 2:25 – 2:45 |
+
+Kiểm tra nhanh dữ liệu đang có (13/11/2026): 3 thanh toán chờ có ảnh biên lai, 3 sự cố `MỚI`, cả 10 sự cố đều có ảnh. Nếu các con số này về 0 thì phải nhờ C tạo lại trước khi quay.
+
+**Nếu C trễ hạn:** quay phần B (1:30 – 4:10) trước hạn 1 ngày, thu riêng câu chuyển “tiếp theo bạn C sẽ demo App Client” và ghép sau. Không đợi C rồi quay một mạch sát giờ nộp.
+
 ## 1. Bảng phân cảnh
 
 | Thời gian | Cảnh | Thao tác trên màn hình | Lời thuyết minh |
