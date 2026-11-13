@@ -50,6 +50,10 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
     private final List<KhuTro> dsKhu = new ArrayList<>();
     private final List<Phong> dsPhong = new ArrayList<>();
     private boolean dangKhoiTao = true;
+    /** Tăng mỗi lần đổi phòng để bỏ qua phản hồi chỉ số tháng trước đã cũ. */
+    private int phienChiSoDau;
+    private int khuLuu = -1;
+    private String thangLuu;
 
     @Nullable
     @Override
@@ -66,6 +70,13 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
         spKhu = view.findViewById(R.id.sp_khu);
         edThang = view.findViewById(R.id.ed_thang);
         edThang.setText(DinhDang.thangNay());
+        if (savedInstanceState != null) {
+            thangLuu = savedInstanceState.getString("loc_thang");
+            khuLuu = savedInstanceState.getInt("loc_khu", -1);
+            if (thangLuu != null) {
+                edThang.setText(thangLuu);
+            }
+        }
 
         RecyclerView ds = view.findViewById(R.id.danh_sach);
         ds.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -129,6 +140,9 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
                             ten.add(k.ten);
                         }
                         spKhu.setAdapter(mau(ten));
+                        if (khuLuu >= 0 && khuLuu < ten.size()) {
+                            spKhu.setSelection(khuLuu);
+                        }
                         dangKhoiTao = false;
                         taiChiSo();
                     }
@@ -159,12 +173,18 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
     }
 
     private void taiChiSo() {
+        String thang = edThang.getText() == null ? "" : edThang.getText().toString().trim();
+        if (!thang.isEmpty() && !thang.matches("\\d{4}-(0[1-9]|1[0-2])")) {
+            keoXuong.setRefreshing(false);
+            edThang.setError("Tháng phải có dạng YYYY-MM, ví dụ 2026-11");
+            return;
+        }
+        edThang.setError(null);
         if (!keoXuong.isRefreshing()) {
             trangThai.dangTai();
         }
         Integer khuId = spKhu.getSelectedItemPosition() > 0
                 ? dsKhu.get(spKhu.getSelectedItemPosition() - 1).id : null;
-        String thang = edThang.getText() == null ? "" : edThang.getText().toString().trim();
         ApiClient.get(requireContext()).dsChiSo(khuId, thang.isEmpty() ? null : thang)
                 .enqueue(new ApiCallback<List<ChiSoDienNuoc>>(this) {
                     @Override
@@ -238,22 +258,56 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
         edNuocDau.addTextChangedListener(tinhLai);
         edNuocCuoi.addTextChangedListener(tinhLai);
 
+        final int[] phongDaTai = {-1};
+        final String[] thangDaTai = {""};
         spPhong.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view1, int position, long id) {
                 if (position < 0 || position >= dsPhong.size()) {
                     return;
                 }
-                taiChiSoDau(dsPhong.get(position).id, chuoi(edThangDialog),
-                        edDienDau, edNuocDau, txtGoiY);
+                String thang = chuoi(edThangDialog);
+                if (position == phongDaTai[0] && thang.equals(thangDaTai[0])) {
+                    return;
+                }
+                phongDaTai[0] = position;
+                thangDaTai[0] = thang;
+                taiChiSoDau(dsPhong.get(position).id, thang, edDienDau, edNuocDau, txtGoiY);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-        if (!dsPhong.isEmpty()) {
-            taiChiSoDau(dsPhong.get(0).id, chuoi(edThangDialog), edDienDau, edNuocDau, txtGoiY);
+        // Đổi tháng trong hộp thoại thì lấy lại chỉ số đầu kỳ của đúng tháng đó,
+        // tránh dùng nhầm chỉ số của tháng cũ đang hiển thị.
+        edThangDialog.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String thang = s.toString().trim();
+                int position = spPhong.getSelectedItemPosition();
+                if (!thang.matches("\\d{4}-(0[1-9]|1[0-2])")
+                        || position < 0 || position >= dsPhong.size()
+                        || (position == phongDaTai[0] && thang.equals(thangDaTai[0]))) {
+                    return;
+                }
+                phongDaTai[0] = position;
+                thangDaTai[0] = thang;
+                taiChiSoDau(dsPhong.get(position).id, thang, edDienDau, edNuocDau, txtGoiY);
+            }
+        });
+        if (!dsPhong.isEmpty() && phongDaTai[0] < 0) {
+            phongDaTai[0] = 0;
+            thangDaTai[0] = chuoi(edThangDialog);
+            taiChiSoDau(dsPhong.get(0).id, thangDaTai[0], edDienDau, edNuocDau, txtGoiY);
         }
         capNhatTieuThu(txtTieuThu, edDienDau, edDienCuoi, edNuocDau, edNuocCuoi);
 
@@ -339,10 +393,17 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
                                 }
 
                                 @Override
-                                public void khiLoi(String thongDiep, int maHttp) {
+                                public void khiLoi(String thongDiep, int maHttp, String truong) {
                                     dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
                                             .setEnabled(true);
-                                    oThang.setError(thongDiep);
+                                    TextInputLayout o = oTheoTruong(truong, oThang, oDienDau,
+                                            oDienCuoi, oNuocDau, oNuocCuoi);
+                                    if (o != null) {
+                                        o.setError(thongDiep);
+                                    } else {
+                                        android.widget.Toast.makeText(requireContext(), thongDiep,
+                                                android.widget.Toast.LENGTH_LONG).show();
+                                    }
                                 }
                             });
                 }));
@@ -355,17 +416,29 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
      */
     private void taiChiSoDau(int phongId, String thang, EditText edDienDau, EditText edNuocDau,
                              TextView txtGoiY) {
+        final int phien = ++phienChiSoDau;
+        // Xóa chỉ số của phòng trước để không hiển thị nhầm dữ liệu cũ.
+        edDienDau.setText("");
+        edNuocDau.setText("");
+        txtGoiY.setText("Đang lấy chỉ số tháng trước…");
         ApiClient.get(requireContext()).dsChiSoTheoPhong(phongId)
                 .enqueue(new ApiCallback<List<ChiSoDienNuoc>>(this) {
                     @Override
                     public void khiThanhCong(List<ChiSoDienNuoc> duLieu) {
+                        if (phien != phienChiSoDau) {
+                            return; // người dùng đã chọn phòng khác
+                        }
                         ChiSoDienNuoc truoc = null;
                         if (duLieu != null) {
                             for (ChiSoDienNuoc c : duLieu) {
-                                if (c.thang != null && thang != null
-                                        && c.thang.compareTo(thang) < 0) {
+                                if (c.thang == null || thang == null
+                                        || c.thang.compareTo(thang) >= 0) {
+                                    continue;
+                                }
+                                // Danh sách backend không đảm bảo thứ tự: chọn tháng lớn nhất
+                                // nhưng vẫn nhỏ hơn tháng đang ghi.
+                                if (truoc == null || c.thang.compareTo(truoc.thang) > 0) {
                                     truoc = c;
-                                    break;
                                 }
                             }
                         }
@@ -382,14 +455,43 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
 
                     @Override
                     public void khiLoi(String thongDiep, int maHttp) {
+                        if (phien != phienChiSoDau) {
+                            return;
+                        }
                         txtGoiY.setText("Không tải được chỉ số tháng trước: " + thongDiep);
                     }
 
                     @Override
                     public void khiMatKetNoi(String thongDiep) {
+                        if (phien != phienChiSoDau) {
+                            return;
+                        }
                         txtGoiY.setText("Không tải được chỉ số tháng trước. Kiểm tra kết nối mạng.");
                     }
                 });
+    }
+
+    /** Ánh xạ tên trường lỗi của backend sang ô nhập tương ứng trong hộp thoại. */
+    private static TextInputLayout oTheoTruong(String truong, TextInputLayout oThang,
+                                               TextInputLayout oDienDau, TextInputLayout oDienCuoi,
+                                               TextInputLayout oNuocDau, TextInputLayout oNuocCuoi) {
+        if (truong == null) {
+            return null;
+        }
+        switch (truong) {
+            case "thang":
+                return oThang;
+            case "dien_dau":
+                return oDienDau;
+            case "dien_cuoi":
+                return oDienCuoi;
+            case "nuoc_dau":
+                return oNuocDau;
+            case "nuoc_cuoi":
+                return oNuocCuoi;
+            default:
+                return null;
+        }
     }
 
     /** Cập nhật dòng "Tiêu thụ dự kiến" ngay khi người dùng nhập chỉ số cuối. */
@@ -448,5 +550,16 @@ public class ChiSoFragment extends Fragment implements ChiSoAdapter.ThaoTac {
                 .setMessage(noiDung)
                 .setPositiveButton("Đóng", null)
                 .show();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (edThang == null) {
+            return;
+        }
+        outState.putString("loc_thang", edThang.getText() == null
+                ? "" : edThang.getText().toString().trim());
+        outState.putInt("loc_khu", spKhu.getSelectedItemPosition());
     }
 }

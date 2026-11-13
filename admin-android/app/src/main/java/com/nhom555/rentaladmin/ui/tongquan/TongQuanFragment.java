@@ -42,6 +42,7 @@ public class TongQuanFragment extends Fragment {
     private TextView txtDaThu;
     private TextView txtConNo;
     private View theDoanhThu;
+    private boolean laChuTro;
 
     @Nullable
     @Override
@@ -64,6 +65,11 @@ public class TongQuanFragment extends Fragment {
         txtDaThu = view.findViewById(R.id.txt_da_thu);
         txtConNo = view.findViewById(R.id.txt_con_no);
         theDoanhThu = view.findViewById(R.id.the_doanh_thu);
+        laChuTro = TokenStore.laChuTro(requireContext());
+        // QUAN_LY không được xem doanh thu; ẩn hẳn thẻ số liệu tiền.
+        if (!laChuTro) {
+            theDoanhThu.setVisibility(View.GONE);
+        }
 
         TextView txtChao = view.findViewById(R.id.txt_chao);
         txtChao.setText("Xin chào, " + TokenStore.hoTen(requireContext()));
@@ -111,7 +117,7 @@ public class TongQuanFragment extends Fragment {
                             txtDangXuLy.setText(String.valueOf(s.dang_xu_ly));
                         }
                         ThongKeHoaDonThang hd = duLieu.hoa_don_thang_nay;
-                        if (hd == null) {
+                        if (hd == null || !laChuTro) {
                             theDoanhThu.setVisibility(View.GONE);
                         } else {
                             theDoanhThu.setVisibility(View.VISIBLE);

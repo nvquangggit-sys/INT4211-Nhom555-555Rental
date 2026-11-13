@@ -6,6 +6,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -58,11 +59,15 @@ public class MainActivity extends AppCompatActivity {
         dieuHuong.setNavigationItemSelectedListener(this::chonMuc);
         apDungPhanQuyen();
         ganThongTinNguoiDung();
+        xuLyNutQuayLai();
 
         if (savedInstanceState == null) {
             chonManHinh(manHinhMacDinh());
         } else {
             dangChon = savedInstanceState.getInt("dang_chon", manHinhMacDinh());
+            if (!duocPhep(dangChon)) {
+                dangChon = manHinhMacDinh();
+            }
             dieuHuong.setCheckedItem(dangChon);
             toolbar.setTitle(tieuDeCua(dangChon));
         }
@@ -70,16 +75,18 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Ẩn các mục menu không thuộc quyền của QUAN_LY.
-     * Đây chỉ là lớp bảo vệ giao diện; backend vẫn là nơi chặn quyền thật (403).
+     * QUAN_LY chỉ được ghi chỉ số điện nước và xử lý sự cố, không xem doanh thu,
+     * không sửa giá thuê/biểu giá. Đây chỉ là lớp bảo vệ giao diện;
+     * backend vẫn là nơi chặn quyền thật (403).
      */
     private void apDungPhanQuyen() {
         if (TokenStore.laChuTro(this)) {
             return;
         }
         int[] cacMucChiChuTro = {
-                R.id.nav_khu_tro, R.id.nav_phong, R.id.nav_hop_dong,
-                R.id.nav_hoa_don, R.id.nav_thanh_toan, R.id.nav_lich_xem,
-                R.id.nav_bao_cao
+                R.id.nav_tong_quan, R.id.nav_khu_tro, R.id.nav_phong,
+                R.id.nav_hop_dong, R.id.nav_hoa_don, R.id.nav_thanh_toan,
+                R.id.nav_lich_xem, R.id.nav_bao_cao
         };
         android.view.Menu menu = dieuHuong.getMenu();
         for (int id : cacMucChiChuTro) {
@@ -163,12 +170,12 @@ public class MainActivity extends AppCompatActivity {
         drawer.closeDrawer(GravityCompat.START);
     }
 
-    /** Cho phép QUAN_LY điều hướng tới màn hình ghi chỉ số / sự cố / tổng quan. */
+    /** Cho phép QUAN_LY điều hướng tới màn hình ghi chỉ số / sự cố. */
     private boolean duocPhep(int id) {
         if (TokenStore.laChuTro(this)) {
             return true;
         }
-        return id == R.id.nav_tong_quan || id == R.id.nav_chi_so || id == R.id.nav_su_co;
+        return id == R.id.nav_chi_so || id == R.id.nav_su_co;
     }
 
     /** Cho phép các fragment chuyển màn hình qua thanh điều hướng. */
@@ -237,17 +244,28 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-            return;
-        }
-        if (dangChon != manHinhMacDinh()) {
-            chonManHinh(manHinhMacDinh());
-            return;
-        }
-        super.onBackPressed();
+    /**
+     * Xử lý nút quay lại bằng OnBackPressedDispatcher (API hiện đại, tương thích
+     * predictive back của targetSdk 37): đóng drawer trước, sau đó quay về màn hình
+     * mặc định của vai trò, cuối cùng mới thoát app.
+     */
+    private void xuLyNutQuayLai() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.closeDrawer(GravityCompat.START);
+                    return;
+                }
+                if (dangChon != manHinhMacDinh()) {
+                    chonManHinh(manHinhMacDinh());
+                    return;
+                }
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+                setEnabled(true);
+            }
+        });
     }
 
     @Override

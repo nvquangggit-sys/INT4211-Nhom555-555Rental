@@ -58,7 +58,8 @@ public class HopDongAdapter extends RecyclerView.Adapter<HopDongAdapter.VH> {
         HopDong hd = duLieu.get(position);
         String khu = hd.ten_khu == null ? "" : " · " + hd.ten_khu;
         h.txtPhong.setText("Phòng " + hd.so_phong + khu);
-        h.txtNguoiThue.setText("Người thuê: " + hd.ten_nguoi_thue
+        h.txtNguoiThue.setText("Người thuê: "
+                + (hd.ten_nguoi_thue == null ? "—" : hd.ten_nguoi_thue)
                 + (hd.sdt_nguoi_thue == null ? "" : " · " + hd.sdt_nguoi_thue));
         h.txtThoiHan.setText(DinhDang.ngay(hd.bat_dau) + " → " + DinhDang.ngay(hd.ket_thuc));
         String conLai;

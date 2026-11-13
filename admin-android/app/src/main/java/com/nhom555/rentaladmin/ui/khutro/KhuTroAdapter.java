@@ -63,12 +63,13 @@ public class KhuTroAdapter extends RecyclerView.Adapter<KhuTroAdapter.VH> {
         h.txtTienIch.setText(tienIch);
         h.txtTinhTrang.setText("Trống " + k.so_phong_trong + " · Đã thuê " + k.so_phong_da_thue);
 
-        if (k.gia_dien == null) {
+        if (k.gia_dien == null && k.gia_nuoc == null
+                && k.phi_rac == null && k.phi_gui_xe == null) {
             h.txtBieuGia.setText("Chưa có biểu giá");
         } else {
-            h.txtBieuGia.setText("Điện " + DinhDang.so(k.gia_dien) + " đ/kWh · Nước "
-                    + DinhDang.so(k.gia_nuoc) + " đ/m³ · Rác " + DinhDang.so(k.phi_rac)
-                    + " đ · Xe " + DinhDang.so(k.phi_gui_xe) + " đ");
+            h.txtBieuGia.setText("Điện " + donGia(k.gia_dien) + " đ/kWh · Nước "
+                    + donGia(k.gia_nuoc) + " đ/m³ · Rác " + donGia(k.phi_rac)
+                    + " đ · Xe " + donGia(k.phi_gui_xe) + " đ");
         }
 
         int hien = laChuTro ? View.VISIBLE : View.GONE;
@@ -84,6 +85,11 @@ public class KhuTroAdapter extends RecyclerView.Adapter<KhuTroAdapter.VH> {
     @Override
     public int getItemCount() {
         return duLieu.size();
+    }
+
+    /** Đơn giá có thể null khi khu chưa cấu hình biểu giá đầy đủ. */
+    private static String donGia(Integer giaTri) {
+        return giaTri == null ? "—" : DinhDang.so(giaTri);
     }
 
     static class VH extends RecyclerView.ViewHolder {

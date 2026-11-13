@@ -51,6 +51,10 @@ public class HoaDonFragment extends Fragment {
     private HoaDonAdapter adapter;
     private final List<KhuTro> dsKhu = new ArrayList<>();
     private boolean dangKhoiTao = true;
+    private String thangLuu;
+    private int khuLuu = -1;
+    private int trangThaiLuu = -1;
+    private boolean quaHanLuu;
 
     @Nullable
     @Override
@@ -69,6 +73,16 @@ public class HoaDonFragment extends Fragment {
         edThang = view.findViewById(R.id.ed_thang);
         cbQuaHan = view.findViewById(R.id.cb_qua_han);
         edThang.setText(DinhDang.thangNay());
+        if (savedInstanceState != null) {
+            thangLuu = savedInstanceState.getString("loc_thang");
+            khuLuu = savedInstanceState.getInt("loc_khu", -1);
+            trangThaiLuu = savedInstanceState.getInt("loc_trang_thai", -1);
+            quaHanLuu = savedInstanceState.getBoolean("loc_qua_han", false);
+            if (thangLuu != null) {
+                edThang.setText(thangLuu);
+            }
+            cbQuaHan.setChecked(quaHanLuu);
+        }
 
         RecyclerView ds = view.findViewById(R.id.danh_sach);
         ds.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -90,7 +104,11 @@ public class HoaDonFragment extends Fragment {
         };
         spKhu.setOnItemSelectedListener(chonLoc);
         spTrangThai.setOnItemSelectedListener(chonLoc);
-        cbQuaHan.setOnCheckedChangeListener((b, checked) -> taiHoaDon());
+        cbQuaHan.setOnCheckedChangeListener((b, checked) -> {
+            if (!dangKhoiTao) {
+                taiHoaDon();
+            }
+        });
         view.findViewById(R.id.btn_xem).setOnClickListener(v -> {
             if (thangHopLe()) {
                 taiHoaDon();
@@ -136,6 +154,12 @@ public class HoaDonFragment extends Fragment {
                             ten[i + 1] = dsKhu.get(i).ten;
                         }
                         spKhu.setAdapter(mau(ten));
+                        if (khuLuu >= 0 && khuLuu < ten.length) {
+                            spKhu.setSelection(khuLuu);
+                        }
+                        if (trangThaiLuu >= 0 && trangThaiLuu < spTrangThai.getCount()) {
+                            spTrangThai.setSelection(trangThaiLuu);
+                        }
                         dangKhoiTao = false;
                         taiHoaDon();
                     }
@@ -153,12 +177,18 @@ public class HoaDonFragment extends Fragment {
     }
 
     private void taiHoaDon() {
+        String thang = edThang.getText() == null ? "" : edThang.getText().toString().trim();
+        if (!thang.isEmpty() && !thang.matches("\\d{4}-(0[1-9]|1[0-2])")) {
+            keoXuong.setRefreshing(false);
+            edThang.setError("Tháng phải có dạng YYYY-MM, ví dụ 2026-11");
+            return;
+        }
+        edThang.setError(null);
         if (!keoXuong.isRefreshing()) {
             trangThai.dangTai();
         }
         Integer khuId = spKhu.getSelectedItemPosition() > 0
                 ? dsKhu.get(spKhu.getSelectedItemPosition() - 1).id : null;
-        String thang = edThang.getText() == null ? "" : edThang.getText().toString().trim();
         String maTrangThai = TrangThai.maTrangThaiHoaDon(
                 String.valueOf(spTrangThai.getSelectedItem()));
         Integer quaHan = cbQuaHan.isChecked() ? 10 : null;
@@ -268,5 +298,18 @@ public class HoaDonFragment extends Fragment {
                 .setMessage(sb.toString())
                 .setPositiveButton("Đóng", null)
                 .show();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (edThang == null) {
+            return;
+        }
+        outState.putString("loc_thang", edThang.getText() == null
+                ? "" : edThang.getText().toString().trim());
+        outState.putInt("loc_khu", spKhu.getSelectedItemPosition());
+        outState.putInt("loc_trang_thai", spTrangThai.getSelectedItemPosition());
+        outState.putBoolean("loc_qua_han", cbQuaHan.isChecked());
     }
 }

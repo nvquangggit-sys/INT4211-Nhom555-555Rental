@@ -270,8 +270,8 @@ public class PhongFragment extends Fragment implements PhongAdapter.ThaoTac {
                         hopLe = false;
                     }
                     Integer giaThue = soNguyen(edGiaThue);
-                    if (giaThue == null || giaThue < 0) {
-                        oGiaThue.setError("Giá thuê không hợp lệ");
+                    if (giaThue == null || giaThue <= 0) {
+                        oGiaThue.setError("Giá thuê phải lớn hơn 0");
                         hopLe = false;
                     }
                     Integer sucChua = soNguyen(edSucChua);

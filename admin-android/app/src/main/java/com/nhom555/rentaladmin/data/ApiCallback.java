@@ -71,6 +71,14 @@ public abstract class ApiCallback<T> implements Callback<T> {
         }
     }
 
+    /**
+     * Như {@link #khiLoi(String, int)} nhưng kèm tên trường gây lỗi
+     * (backend trả trong chi_tiet.truong) để màn hình tô đỏ đúng ô nhập.
+     */
+    public void khiLoi(String thongDiep, int maHttp, String truong) {
+        khiLoi(thongDiep, maHttp);
+    }
+
     /** Gọi khi không kết nối được máy chủ. Mặc định hiện Toast. */
     public void khiMatKetNoi(String thongDiep) {
         if (conSong()) {
@@ -100,7 +108,9 @@ public abstract class ApiCallback<T> implements Callback<T> {
             PhienDangNhap.hetHan(activity, context);
             return;
         }
-        khiLoi(docThongDiepLoi(response), response.code());
+        LoiPhanHoi loi = docLoi(response);
+        khiLoi(thongDiepLoi(loi, response.code()), response.code(),
+                loi == null ? null : loi.truong());
     }
 
     @Override
@@ -118,19 +128,27 @@ public abstract class ApiCallback<T> implements Callback<T> {
         khiMatKetNoi(thongDiep);
     }
 
-    /** Đọc trường "loi" trong JSON lỗi của backend, nếu không có thì trả thông báo mặc định. */
-    public static String docThongDiepLoi(Response<?> response) {
-        int ma = response.code();
+    /** Đọc nguyên body lỗi của backend (có thể null nếu body rỗng/không phải JSON). */
+    public static LoiPhanHoi docLoi(Response<?> response) {
         ResponseBody body = response.errorBody();
         if (body != null) {
             try {
-                LoiPhanHoi loi = ApiClient.gson().fromJson(body.string(), LoiPhanHoi.class);
-                if (loi != null && loi.loi != null && !loi.loi.trim().isEmpty()) {
-                    return loi.loi;
-                }
+                return ApiClient.gson().fromJson(body.string(), LoiPhanHoi.class);
             } catch (IOException | RuntimeException ignored) {
                 // rơi xuống thông báo mặc định
             }
+        }
+        return null;
+    }
+
+    /** Đọc trường "loi" trong JSON lỗi của backend, nếu không có thì trả thông báo mặc định. */
+    public static String docThongDiepLoi(Response<?> response) {
+        return thongDiepLoi(docLoi(response), response.code());
+    }
+
+    private static String thongDiepLoi(LoiPhanHoi loi, int ma) {
+        if (loi != null && loi.loi != null && !loi.loi.trim().isEmpty()) {
+            return loi.loi;
         }
         switch (ma) {
             case 400:

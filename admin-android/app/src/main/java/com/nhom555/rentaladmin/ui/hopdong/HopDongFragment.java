@@ -310,6 +310,14 @@ public class HopDongFragment extends Fragment implements HopDongAdapter.ThaoTac 
                     if (soNguoi == null || soNguoi < 1) {
                         oSoNguoi.setError("Số người tối thiểu 1");
                         hopLe = false;
+                    } else {
+                        int vt = spPhong.getSelectedItemPosition();
+                        if (vt >= 0 && vt < dsPhongTrong.size()
+                                && soNguoi > dsPhongTrong.get(vt).suc_chua) {
+                            oSoNguoi.setError("Vượt sức chứa tối đa "
+                                    + dsPhongTrong.get(vt).suc_chua + " người");
+                            hopLe = false;
+                        }
                     }
                     if (!hopLe) {
                         return;
@@ -407,6 +415,14 @@ public class HopDongFragment extends Fragment implements HopDongAdapter.ThaoTac 
                         GiaoDien.snack(requireView(), "Ngày không hợp lệ (YYYY-MM-DD)");
                         return;
                     }
+                    String batDau = hopDong.bat_dau == null ? ""
+                            : hopDong.bat_dau.substring(0, Math.min(10, hopDong.bat_dau.length()));
+                    if (!batDau.isEmpty() && moi.compareTo(batDau) <= 0) {
+                        GiaoDien.snack(requireView(),
+                                "Ngày kết thúc mới phải sau ngày bắt đầu "
+                                        + DinhDang.ngay(hopDong.bat_dau));
+                        return;
+                    }
                     YeuCauTrangThai body = new YeuCauTrangThai();
                     body.ket_thuc = moi;
                     dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setEnabled(false);
@@ -449,7 +465,7 @@ public class HopDongFragment extends Fragment implements HopDongAdapter.ThaoTac 
     @Override
     public void chon(HopDong hopDong) {
         String noiDung = "Khu: " + (hopDong.ten_khu == null ? "—" : hopDong.ten_khu) + "\n"
-                + "Người thuê: " + hopDong.ten_nguoi_thue + "\n"
+                + "Người thuê: " + (hopDong.ten_nguoi_thue == null ? "—" : hopDong.ten_nguoi_thue) + "\n"
                 + "SĐT: " + (hopDong.sdt_nguoi_thue == null ? "—" : hopDong.sdt_nguoi_thue) + "\n"
                 + "Thời hạn: " + DinhDang.ngay(hopDong.bat_dau) + " → " + DinhDang.ngay(hopDong.ket_thuc) + "\n"
                 + "Tiền cọc: " + DinhDang.tien(hopDong.tien_coc) + "\n"

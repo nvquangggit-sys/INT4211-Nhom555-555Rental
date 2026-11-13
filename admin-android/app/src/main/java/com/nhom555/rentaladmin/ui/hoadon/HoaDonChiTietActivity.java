@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.nhom555.rentaladmin.R;
@@ -173,7 +174,8 @@ public class HoaDonChiTietActivity extends AppCompatActivity {
         TextView tv = new TextView(this);
         tv.setText(noiDung);
         tv.setTextSize(13);
-        tv.setTextColor(getResources().getColor(canhBao ? R.color.warning : R.color.text_primary));
+        tv.setTextColor(ContextCompat.getColor(this,
+                canhBao ? R.color.warning : R.color.text_primary));
         int pad = GiaoDien.dp(this, 6);
         tv.setPadding(0, pad, 0, pad);
         return tv;
