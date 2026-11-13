@@ -12,7 +12,7 @@ com.nhom555.rentaladmin
 │   ├── ApiService.java   # Khai báo toàn bộ endpoint
 │   ├── ApiCallback.java  # Callback dùng chung: 2xx / 401 / 4xx / mất mạng
 │   ├── TokenStore.java   # SharedPreferences: token, vai trò, base URL
-│   └── model/            # 43 lớp DTO ánh xạ snake_case của backend
+│   └── model/            # 42 lớp DTO ánh xạ snake_case của backend
 ├── ui/
 │   ├── login/            # LoginActivity
 │   ├── main/             # MainActivity + Drawer
@@ -28,7 +28,7 @@ com.nhom555.rentaladmin
 
 `Fragment/Activity` → `ApiService` → `Retrofit/OkHttp` (gắn `Authorization: Bearer`) → Backend → `ApiCallback` → cập nhật View.
 
-Không có ViewModel phức tạp; trạng thái màn hình được quản lý bằng `TrangThaiManHinh` (đang tải / xong / lỗi / rỗng) và `onSaveInstanceState` cho các trường lọc.
+Không có ViewModel phức tạp; trạng thái màn hình được quản lý bằng `TrangThaiManHinh` (đang tải / xong / lỗi / rỗng). Ba `Activity` khai báo `android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"` để xoay màn hình không tạo lại Activity (giữ nguyên form và hộp thoại đang mở); các bộ lọc của Hóa đơn / Ghi chỉ số vẫn được lưu thêm trong `onSaveInstanceState` để an toàn khi tiến trình bị hệ thống thu hồi.
 
 ## 5.2. Sơ đồ điều hướng
 
@@ -76,7 +76,7 @@ flowchart TD
 | 11 | Lịch xem phòng | Fragment + RecyclerView | `LichXemFragment` | Xác nhận / từ chối lịch hẹn |
 | 12 | Báo cáo | Fragment + MPAndroidChart | `BaoCaoFragment` | Biểu đồ cột, biểu đồ tròn, công nợ, bất thường |
 
-Ngoài ra có 7 dialog: `dialog_khu_tro`, `dialog_phong`, `dialog_hop_dong`, `dialog_chi_so`, `dialog_phat_hanh`, `dialog_su_co`, và dialog đổi địa chỉ API.
+Ngoài ra có 6 layout dialog dùng lại cho nhiều mục đích: `dialog_khu_tro` (thêm/sửa khu và sửa biểu giá), `dialog_phong`, `dialog_hop_dong` (tạo hợp đồng; gia hạn dùng EditText tạo bằng code), `dialog_chi_so`, `dialog_phat_hanh`, `dialog_su_co`; cùng các dialog tạo bằng code: đổi địa chỉ API, xác nhận xóa/kết thúc/xác nhận thanh toán và dialog xem ảnh.
 
 ## 5.4. Chi tiết từng màn hình
 
@@ -112,7 +112,7 @@ Ngoài ra có 7 dialog: `dialog_khu_tro`, `dialog_phong`, `dialog_hop_dong`, `di
 - `RecyclerView` thẻ khu trọ: tên, địa chỉ, phường/xã, tiện ích, biểu giá hiện tại, số phòng.
 - Nút “Thêm khu trọ” ở góc dưới.
 - Mỗi thẻ có menu: Sửa, Sửa biểu giá, Xóa.
-- **Xóa** luôn qua `MaterialAlertDialogBuilder`: “Xóa khu trọ này? Các phòng bên trong có thể bị ảnh hưởng.” Nếu backend trả `409` (còn phòng/hợp đồng), hiển thị thông báo backend.
+- **Xóa** luôn qua `MaterialAlertDialogBuilder`: “Bạn có chắc muốn xóa khu …? Chỉ xóa được khu chưa có phòng.” Nếu backend trả `409` (còn phòng/hợp đồng), hiển thị nguyên văn thông báo backend.
 - **Form:** tên bắt buộc; địa chỉ bắt buộc; phường/xã bắt buộc; giá điện/nước/rác/gửi xe phải là số không âm. Lỗi hiển thị đúng `TextInputLayout`.
 
 ### 5.4.4. Phòng – `fragment_phong.xml`
@@ -135,13 +135,15 @@ Ngoài ra có 7 dialog: `dialog_khu_tro`, `dialog_phong`, `dialog_hop_dong`, `di
 
 Đây là màn hình nghiệp vụ chính của `QUAN_LY`.
 
-- Chọn khu + tháng (mặc định tháng trước).
-- `RecyclerView` mỗi dòng: số phòng, chỉ số đầu (điện/nước), ô nhập chỉ số cuối, tiêu thụ dự kiến cập nhật ngay khi gõ.
-- Nút “Lưu chỉ số” trên từng dòng hoặc lưu hàng loạt theo thứ tự.
-- **Dialog nhập:** hiển thị gợi ý “Chỉ số đầu tháng này: điện 1.637 – nước 174” lấy từ API `chi-so-dien-nuoc?phong=ID`.
-- **Lỗi 400:** backend trả `chi_tiet.truong = dien_cuoi`, app gọi `setError("Chỉ số cuối không được nhỏ hơn chỉ số đầu")` đúng ô.
-- **Cảnh báo tăng vọt:** nếu response có `canh_bao`, app hiện hộp thoại vàng “Tiêu thụ tăng X% so với trung bình 3 tháng” và yêu cầu xác nhận lại; người dùng có thể hủy để sửa.
-- **409:** tháng đã ghi chỉ số → thông báo rõ, không ghi đè.
+- Chọn khu + tháng (mặc định tháng hiện tại, sửa được theo dạng `YYYY-MM`); nút “Xem” và kéo xuống để tải lại.
+- `RecyclerView` lịch sử chỉ số: mỗi dòng hiển thị số phòng, kỳ, điện/nước đầu → cuối, tiêu thụ và người ghi; bấm một dòng mở dialog chi tiết.
+- Nút nổi “Ghi chỉ số” mở `dialog_chi_so`: chọn phòng, nhập tháng và chỉ số điện/nước đầu – cuối. Dòng “Tiêu thụ dự kiến” cập nhật ngay khi gõ.
+- **Prefill chỉ số đầu:** app gọi `GET /chi-so-dien-nuoc?phong=ID`, chọn bản ghi có tháng lớn nhất nhưng nhỏ hơn tháng đang ghi (không phụ thuộc thứ tự trả về của backend). Nếu phòng chưa có chỉ số trước, hai ô đầu kỳ được xóa trống và hiện gợi ý nhập tay. Đổi phòng hoặc đổi tháng trong hộp thoại đều tự lấy lại chỉ số đầu kỳ tương ứng, không giữ số của tháng cũ.
+- **Kiểm tra phía app:** tháng đúng `YYYY-MM`; chỉ số cuối là số ≥ 0; nếu nhập chỉ số đầu thì cuối phải ≥ đầu. Lỗi hiện đúng `TextInputLayout`.
+- **Lỗi 400:** backend trả kèm `chi_tiet.truong` (`thang`, `dien_dau`, `dien_cuoi`, `nuoc_dau`, `nuoc_cuoi`); `ApiCallback` chuyển tên trường xuống màn hình và app gọi `setError` đúng ô, không báo lỗi chung chung.
+- **Cảnh báo tăng vọt:** nếu response có `canh_bao`, sau khi lưu app hiện hộp thoại “Cảnh báo tiêu thụ bất thường” kèm mức tiêu thụ tháng này, trung bình 3 tháng và % tăng; người dùng bấm “Đã hiểu” để đóng.
+- **409:** tháng đã ghi chỉ số cho phòng đó → backend trả `409`, app hiển thị nguyên văn thông báo và không ghi đè.
+- Trong lúc gửi, nút “Lưu” của dialog bị vô hiệu hóa để tránh bấm lặp.
 
 ### 5.4.7. Hóa đơn – `fragment_hoa_don.xml`
 
@@ -149,8 +151,8 @@ Ngoài ra có 7 dialog: `dialog_khu_tro`, `dialog_phong`, `dialog_hop_dong`, `di
 - Chip “Nợ quá 10 ngày” gọi `GET /hoa-don?quaHan=10`.
 - `RecyclerView` thẻ hóa đơn: phòng, khu, tháng, tổng tiền, đã thu, còn nợ, hạn, badge trạng thái.
 - Nút “Phát hành hóa đơn tháng” mở `dialog_phat_hanh`: chọn khu + tháng, xác nhận.
-- Khi phát hành: khóa nút, hiện ProgressBar; kết quả trong dialog gồm “Đã tạo N hóa đơn”, “Bỏ qua M”, “Thiếu chỉ số: phòng …”, “Cảnh báo bất thường”.
-- Kiểm tra tháng bằng regex `^\d{4}-(0[1-9]|1[0-2])$`, báo lỗi ngay trên ô.
+- Khi phát hành: khóa nút gửi để tránh bấm lặp; kết quả trong dialog gồm “Đã tạo N hóa đơn”, “Bỏ qua M”, “Thiếu chỉ số: phòng …”, “Cảnh báo bất thường”.
+- Kiểm tra tháng bằng regex `^\d{4}-(0[1-9]|1[0-2])$` trước khi gọi API (áp dụng cho cả nút “Xem”, kéo xuống tải lại và checkbox nợ quá hạn), báo lỗi ngay trên ô.
 - Bấm một hóa đơn → `HoaDonChiTietActivity`.
 
 ### 5.4.8. Chi tiết hóa đơn – `activity_hoa_don_chi_tiet.xml`
@@ -164,7 +166,7 @@ Ngoài ra có 7 dialog: `dialog_khu_tro`, `dialog_phong`, `dialog_hop_dong`, `di
 
 ### 5.4.9. Thanh toán – `fragment_thanh_toan.xml`
 
-- Lọc theo khu và hóa đơn.
+- Lọc theo khu; nút “Tải lại” và kéo xuống để làm mới danh sách.
 - Thẻ giao dịch: phòng, người thuê, số tiền, hình thức + thời điểm, thông tin hóa đơn, badge “Chờ xác nhận” / “Đã xác nhận”.
 - Nút “Xem biên lai” (nếu có ảnh) mở dialog ảnh.
 - Nút “Xác nhận đã thu” chỉ hiện với `CHU_TRO` và giao dịch chưa xác nhận; có dialog xác nhận trước khi gọi `PATCH /thanh-toan/:id/xac-nhan`.
@@ -241,21 +243,27 @@ Danh sách còn có `SwipeRefreshLayout` để kéo xuống tải lại mà khô
 
 ## 5.8. Không mất dữ liệu khi xoay màn hình
 
+Ba `Activity` (`LoginActivity`, `MainActivity`, `HoaDonChiTietActivity`) khai báo
+`android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"`, nên khi xoay
+màn hình Android **không hủy và tạo lại Activity**: toàn bộ View, hộp thoại đang mở và
+nội dung đang nhập được giữ nguyên. Bên cạnh đó, các bộ lọc quan trọng vẫn được lưu vào
+`onSaveInstanceState` để khôi phục khi tiến trình bị hệ thống thu hồi (process death).
+
 | Màn hình | Cơ chế |
 |---|---|
-| Đăng nhập | `onSaveInstanceState` lưu email |
-| MainActivity | Lưu `dang_chon` (mục menu đang chọn), khôi phục Fragment sau xoay |
-| Báo cáo | Lưu `thang_bat_thuong` |
-| Hóa đơn | Lưu bộ lọc khu/tháng/trạng thái trong `onSaveInstanceState` |
-| Ghi chỉ số | Lưu khu/tháng đang chọn; dialog nhập dở được đóng an toàn, dữ liệu đã lưu trước đó không mất |
-| Các form thêm/sửa | Dialog được tạo lại từ dữ liệu bản ghi, không giữ con trỏ View cũ |
+| Đăng nhập | `configChanges` giữ nguyên form; `onSaveInstanceState` lưu email dự phòng |
+| MainActivity | `configChanges` giữ nguyên Fragment và dialog; `onSaveInstanceState` lưu `dang_chon` |
+| Báo cáo | `configChanges` giữ nguyên tháng đang chọn và biểu đồ đã vẽ |
+| Hóa đơn | `configChanges` giữ bộ lọc; `onSaveInstanceState` lưu khu/tháng/trạng thái/checkbox nợ quá hạn |
+| Ghi chỉ số | `configChanges` giữ khu/tháng và dialog nhập dở; `onSaveInstanceState` lưu khu/tháng |
+| Các form thêm/sửa | Hộp thoại không bị đóng khi xoay nên dữ liệu đang nhập còn nguyên |
 | Toàn app | `ApiCallback.conSong()` chặn cập nhật View sau khi Fragment/Activity đã hủy |
 
 ## 5.9. Ánh xạ màn hình → API
 
 | Màn hình | Endpoint chính |
 |---|---|
-| Đăng nhập | `POST /auth/dang-nhap`, `GET /auth/toi` |
+| Đăng nhập | `POST /auth/dang-nhap` (token lưu `SharedPreferences`; mọi API sau đó tự gắn Bearer; `GET /auth/toi` được khai báo sẵn trong `ApiService` cho nhu cầu kiểm tra phiên nhưng luồng đăng nhập không gọi để tránh chậm khởi động Render) |
 | Tổng quan | `GET /bao-cao/tong-quan` |
 | Khu trọ | `GET/POST/PATCH/DELETE /khu-tro`, `GET/PATCH /bieu-gia/{id}` |
 | Phòng | `GET/POST/PATCH/DELETE /phong` |

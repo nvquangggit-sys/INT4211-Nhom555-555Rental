@@ -60,18 +60,18 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 - Đăng nhập, lưu JWT, tự đăng xuất khi API trả `401`.
 - Phân quyền 2 vai trò: `CHU_TRO` thấy toàn bộ; `QUAN_LY` chỉ thấy Ghi chỉ số và Sự cố.
 - 12 màn hình: Đăng nhập, Tổng quan, Khu trọ, Phòng, Hợp đồng, Ghi chỉ số, Hóa đơn, Chi tiết hóa đơn, Thanh toán, Sự cố, Lịch xem phòng, Báo cáo.
-- 9 danh sách `RecyclerView` + Adapter + ViewHolder.
+- 8 danh sách `RecyclerView` + Adapter + ViewHolder.
 - Form validate bằng `setError`, dialog xác nhận trước khi xóa, Snackbar phản hồi.
 - 3 trạng thái: đang tải / thành công (kể cả rỗng) / lỗi mạng có nút Thử lại.
 - Báo cáo có biểu đồ cột doanh thu và biểu đồ tròn tỷ lệ lấp đầy (MPAndroidChart).
-- Không mất dữ liệu khi xoay màn hình; APK release đã ký, cài được trên máy thật.
+- Không mất dữ liệu khi xoay màn hình: `configChanges` giữ nguyên Activity/form/dialog, kèm `onSaveInstanceState` cho bộ lọc khi tiến trình bị thu hồi; APK release đã ký, sẵn sàng cài trên máy thật (xem `docs/huong-dan-build-apk.md`).
 
 ### Phân quyền
 
 | Vai trò | Quyền chính | Bị chặn |
 |---|---|---|
 | `CHU_TRO` | Toàn quyền | - |
-| `QUAN_LY` | Khu trọ, phòng, hợp đồng, chỉ số, hóa đơn, lịch xem, sự cố, báo cáo vận hành | Sửa biểu giá, xem doanh thu (403) |
+| `QUAN_LY` | API vận hành (khu trọ, phòng, hợp đồng, chỉ số, hóa đơn, lịch xem, sự cố, báo cáo vận hành). App Admin chỉ mở Ghi chỉ số + Sự cố | Sửa biểu giá, xem doanh thu (403) |
 | `NGUOI_THUE` | Dữ liệu của chính mình, gửi thanh toán / sự cố | Toàn bộ API quản trị (403) |
 
 Phân quyền được kiểm tra ở **backend** bằng middleware `xacThuc` + `choPhep`,

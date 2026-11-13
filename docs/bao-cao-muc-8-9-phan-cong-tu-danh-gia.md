@@ -12,7 +12,7 @@
 | Gọi API | Retrofit 2 + Gson, interceptor token, timeout 90 giây, `BASE_URL` https có `/` cuối | `ApiClient`, `ApiService` |
 | Xác thực | Đăng nhập, lưu token, tự đăng xuất khi `401` | `LoginActivity`, `TokenStore`, `PhienDangNhap` |
 | Phân quyền | `CHU_TRO` toàn quyền; `QUAN_LY` chỉ ghi chỉ số + sự cố | `MainActivity`, kiểm tra ở backend |
-| Màn hình | ≥ 6 màn: đăng nhập, khu trọ, phòng, hợp đồng, chỉ số, hóa đơn, thanh toán, sự cố, báo cáo | 12 màn + 7 dialog |
+| Màn hình | ≥ 6 màn: đăng nhập, khu trọ, phòng, hợp đồng, chỉ số, hóa đơn, thanh toán, sự cố, báo cáo | 12 màn + 6 layout dialog dùng lại |
 | Chất lượng | Form validate, dialog xác nhận xóa, 3 trạng thái, xoay màn hình, APK release | Toàn bộ app |
 | Báo cáo | Mục 2, mục 5, 8 ca kiểm thử, mục 8–9, README, kịch bản video, Q&A, hướng dẫn build APK | `docs/` |
 
@@ -49,7 +49,7 @@
 | 14 | Lịch xem | Xác nhận / từ chối | ✅ |
 | 15 | Báo cáo | Biểu đồ cột doanh thu + biểu đồ tròn lấp đầy + công nợ + bất thường | ✅ |
 | 16 | 3 trạng thái + rỗng + thử lại | `TrangThaiManHinh` dùng cho mọi màn danh sách | ✅ |
-| 17 | Xoay màn hình | Lưu bộ lọc, email, mục menu, tháng báo cáo | ✅ |
+| 17 | Xoay màn hình | `configChanges` giữ nguyên Activity/form/dialog; `onSaveInstanceState` lưu bộ lọc, email, mục menu | ✅ |
 | 18 | APK release | Ký keystore, `app-release.apk` 6.1 MB | ✅ |
 | 19 | Tài liệu báo cáo | Mục 2, 5, 7, 8, 9 + README + Q&A | ✅ |
 | 20 | Ảnh chụp màn hình minh chứng | Cần chụp trên máy thật khi nộp | ⏳ |
@@ -73,7 +73,7 @@
 | `GET /phong` chỉ trả phòng trống | Backend mặc định `trangThai=TRONG` | App luôn gửi `trangThai=ALL` khi chọn “Tất cả” |
 | `GET /hoa-don/{id}` trả `chi_so: null` | Lỗi join của backend | App hiển thị “Chưa có chỉ số của tháng này”, không văng |
 | Ảnh biên lai có URL tương đối | Môi trường local không có `PUBLIC_BASE_URL` | `Anh.duongDan()` ghép `BASE_URL` nếu URL bắt đầu bằng `/` |
-| Xoay màn hình mất bộ lọc | Fragment bị tạo lại | `onSaveInstanceState` + đọc lại trong `onViewCreated` |
+| Xoay màn hình mất bộ lọc | Activity/Fragment bị tạo lại | `android:configChanges` để không tạo lại Activity; kèm `onSaveInstanceState` cho bộ lọc khi tiến trình bị thu hồi |
 | Token hết hạn giữa chừng | JWT 7 ngày | `ApiCallback` bắt `401` → xóa phiên → về Login |
 | Không có emulator | Máy không đủ tài nguyên | Build release + cài máy thật; kiểm thử API bằng Postman |
 
@@ -94,16 +94,16 @@
 |---|---|---|
 | Đăng nhập + lưu token + tự đăng xuất khi 401 | Đạt | `LoginActivity`, `TokenStore`, `ApiCallback`, `PhienDangNhap` |
 | Phân quyền ≥ 2 vai trò | Đạt | `CHU_TRO` / `QUAN_LY`; backend trả `403` |
-| ≥ 2 RecyclerView + Adapter + ViewHolder | Đạt (9 danh sách) | Khu trọ, phòng, hợp đồng, chỉ số, hóa đơn, thanh toán, sự cố, lịch xem, báo cáo |
-| Fragment hoặc nhiều Activity | Đạt | 1 `MainActivity` + 10 Fragment + 2 Activity |
+| ≥ 2 RecyclerView + Adapter + ViewHolder | Đạt (8 danh sách) | Khu trọ, phòng, hợp đồng, chỉ số, hóa đơn, thanh toán, sự cố, lịch xem |
+| Fragment hoặc nhiều Activity | Đạt | 1 `MainActivity` + 10 Fragment + 2 Activity (đăng nhập, chi tiết hóa đơn) |
 | Form validate đầy đủ | Đạt | `setError` ở đăng nhập, khu trọ, phòng, hợp đồng, chỉ số, hóa đơn |
 | Dialog xác nhận trước khi xóa | Đạt | Xóa khu trọ, phòng; kết thúc hợp đồng; xác nhận thanh toán |
 | ≥ 1 màn báo cáo có biểu đồ | Đạt | Biểu đồ cột doanh thu + biểu đồ tròn lấp đầy |
 | 3 trạng thái tải / thành công / lỗi mạng | Đạt | `TrangThaiManHinh` + `SwipeRefreshLayout` |
-| Không mất dữ liệu khi xoay | Đạt | `onSaveInstanceState` ở login, main, hóa đơn, báo cáo |
+| Không mất dữ liệu khi xoay | Đạt | `configChanges` ở 3 Activity + `onSaveInstanceState` ở login, main, hóa đơn, chỉ số |
 | Tên app + TAG log chứa mã nhóm | Đạt | `555Rental Admin`; `555Rental-*` |
 | ≥ 6 màn hình | Đạt (12) | Mục 5.3 |
-| APK release cài được trên máy thật | Đạt | `admin-android/releases/555Rental-Admin-v1.0.0.apk`, đã ký |
+| APK release cài được trên máy thật | Đã ký, chờ ảnh cài máy thật | `admin-android/releases/555Rental-Admin-v1.0.0.apk`; `apksigner verify` đạt, chữ ký v2 |
 
 ## 9.2. Điểm làm tốt
 

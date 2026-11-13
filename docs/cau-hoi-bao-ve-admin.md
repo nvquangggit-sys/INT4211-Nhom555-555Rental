@@ -31,7 +31,7 @@
 
 **Trả lời mẫu:**
 
-“Không, ẩn menu chỉ là lớp giao diện. Quyền thật do backend kiểm tra: middleware `xacThuc` xác thực JWT, `choPhep('CHU_TRO')` chặn theo vai trò. Ví dụ tài khoản `QUAN_LY` gọi `GET /bao-cao/doanh-thu` hoặc `PATCH /bieu-gia/:id` đều nhận `403`. Ở app, `MainActivity.apDungPhanQuyen()` ẩn 7 mục chỉ dành cho chủ trọ, và `chonMuc()` chặn nếu người dùng cố mở lại mục đó. Em đã kiểm tra bằng Postman: không token → 401, sai vai trò → 403.”
+“Không, ẩn menu chỉ là lớp giao diện. Quyền thật do backend kiểm tra: middleware `xacThuc` xác thực JWT, `choPhep('CHU_TRO')` chặn theo vai trò. Ví dụ tài khoản `QUAN_LY` gọi `GET /bao-cao/doanh-thu` hoặc `PATCH /bieu-gia/:id` đều nhận `403`. Ở app, `MainActivity.apDungPhanQuyen()` ẩn 8 mục (Tổng quan + 7 mục chỉ dành cho chủ trọ), và `chonMuc()` chặn nếu người dùng cố mở lại mục đó. Em đã kiểm tra bằng Postman: không token → 401, sai vai trò → 403.”
 
 **Ý chính:** 2 lớp: UI ẩn + backend chặn; backend là nguồn quyết định.
 
@@ -47,7 +47,7 @@
 
 **Ý chính:** 90 giây vì Render cold start; phân biệt timeout / unknown host / lỗi khác; không văng.
 
-**Có thể bị hỏi tiếp:** “Vì sao BASE_URL phải có dấu `/` cuối?” → Retrofit ném `IllegalArgumentException: baseUrl must end in /`. App lưu URL người dùng nhập và có thể kiểm tra; mặc định đã có `/`.
+**Có thể bị hỏi tiếp:** “Vì sao BASE_URL phải có dấu `/` cuối?” → Retrofit ném `IllegalArgumentException: baseUrl must end in /`. App xử lý ngay trong `TokenStore.luuBaseUrl`: tự thêm `https://` nếu thiếu scheme và tự thêm `/` cuối, nên người dùng nhập tắt vẫn dùng được.
 
 ---
 
@@ -55,9 +55,9 @@
 
 **Trả lời mẫu:**
 
-“Khi xoay, Android hủy và tạo lại Activity/Fragment. Em xử lý ở ba chỗ. Thứ nhất, những dữ liệu nhỏ như email đăng nhập, mục menu đang chọn, tháng báo cáo, bộ lọc hóa đơn được lưu trong `onSaveInstanceState` và đọc lại trong `onCreate`/`onViewCreated`. Thứ hai, danh sách lấy lại từ API theo id/bộ lọc đã lưu, nên không phụ thuộc vào đối tượng cũ. Thứ ba, `ApiCallback.conSong()` kiểm tra Fragment còn gắn và Activity chưa finish trước khi cập nhật View, tránh `NullPointerException` khi callback về sau khi màn hình đã bị hủy. Các dialog nhập liệu được tạo lại từ dữ liệu bản ghi, không giữ con trỏ View cũ.”
+“Ba Activity của app khai báo `android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"`, nên khi xoay màn hình Android không hủy và tạo lại Activity: toàn bộ View, hộp thoại đang mở và nội dung đang nhập được giữ nguyên. Bên cạnh đó em vẫn lưu các bộ lọc quan trọng như email đăng nhập, mục menu đang chọn, khu/tháng/trạng thái của Hóa đơn và Ghi chỉ số vào `onSaveInstanceState`, để nếu tiến trình bị hệ thống thu hồi thì mở lại vẫn khôi phục đúng. Danh sách thì luôn tải lại từ API theo id/bộ lọc, không giữ đối tượng cũ. Cuối cùng, `ApiCallback.conSong()` kiểm tra Fragment còn gắn và Activity chưa finish trước khi cập nhật View, tránh `NullPointerException` khi callback về sau khi màn hình đã bị hủy.”
 
-**Ý chính:** `onSaveInstanceState` + tải lại theo id + kiểm tra vòng đời.
+**Ý chính:** `configChanges` giữ nguyên Activity/form/dialog; `onSaveInstanceState` dự phòng khi process death; tải lại theo id + kiểm tra vòng đời.
 
 **Có thể bị hỏi tiếp:** “Sao không dùng ViewModel?” → Với dữ liệu nhỏ, `onSaveInstanceState` đủ và ít mã hơn; nếu cần giữ danh sách lớn hoặc gọi API dài, ViewModel + LiveData sẽ tốt hơn, em ghi ở phần hướng phát triển.
 

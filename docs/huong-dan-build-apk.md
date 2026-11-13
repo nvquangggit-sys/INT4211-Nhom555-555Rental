@@ -118,14 +118,13 @@ https://rental-nhom555-api.onrender.com/
 Nếu đổi backend:
 
 1. Ở màn đăng nhập, bấm **Địa chỉ API**.
-2. Nhập URL **có dấu `/` ở cuối**, ví dụ `http://192.168.1.10:3000/`.
+2. Nhập URL **có dấu `/` ở cuối**, ví dụ `https://api-cua-ban.example/`. App tự thêm `https://` và `/` nếu thiếu.
 3. Bấm **Lưu**.
 
 Lưu ý:
 
 - Backend Render Free ngủ sau 15 phút. Lần gọi đầu có thể chờ 30–60 giây; app đã đặt timeout 90 giây.
-- Nếu dùng điện thoại thật trỏ vào máy tính, điện thoại và máy tính phải cùng Wi-Fi, và backend phải chạy `0.0.0.0`.
-- App dùng HTTPS cho production. `network_security_config.xml` hiện cho phép cleartext để tiện demo backend local (`http://192.168.x.x:3000/`); khi phát hành thật nên đổi `cleartextTrafficPermitted` thành `false`.
+- App chặn cleartext (`http://`) với mọi tên miền, chỉ mở cho `10.0.2.2`, `localhost`, `127.0.0.1` để tiện debug. Muốn dùng backend local trên điện thoại thật, chạy `adb reverse tcp:3000 tcp:3000` rồi nhập `http://localhost:3000/`; hoặc dùng HTTPS (ví dụ qua tunnel/ngrok). Không dùng trực tiếp `http://192.168.x.x:3000/` vì sẽ bị chặn.
 
 ## 8. Lỗi thường gặp
 
@@ -135,7 +134,7 @@ Lưu ý:
 | `INSTALL_FAILED_OLDER_SDK` | Máy chạy Android < 7.0 | Dùng máy API 24+ hoặc emulator |
 | `App not installed` | Chưa bật cài từ nguồn ngoài | Bật “Cài đặt ứng dụng không rõ nguồn gốc” |
 | Màn hình trắng / không có dữ liệu | Render đang ngủ hoặc sai API | Chờ 30–60 giây, bấm Thử lại, kiểm tra Địa chỉ API |
-| `CLEARTEXT communication not permitted` | Dùng `http://` | Dùng `https://` hoặc bật network security config cho debug |
+| `CLEARTEXT communication not permitted` | Dùng `http://` với tên miền/IP không được mở | Dùng `https://`, hoặc `adb reverse tcp:3000 tcp:3000` rồi dùng `http://localhost:3000/` |
 | `401` ngay sau khi mở app | Token cũ/hết hạn | Đăng xuất rồi đăng nhập lại |
 | Gradle báo thiếu SDK 37 | Chưa cài platform | SDK Manager → Android 37 → Apply |
 

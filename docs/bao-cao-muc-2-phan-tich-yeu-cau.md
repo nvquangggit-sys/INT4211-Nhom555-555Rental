@@ -160,8 +160,8 @@ flowchart LR
 |---|---|
 | **Tác nhân** | Chủ trọ, Quản lý khu trọ |
 | **Tiền điều kiện** | Đã đăng nhập; phòng có hợp đồng đang hiệu lực; tháng chưa được ghi chỉ số |
-| **Luồng chính** | 1. Người dùng chọn khu và tháng.<br>2. Hệ thống tải danh sách phòng kèm chỉ số đầu kỳ (lấy từ chỉ số cuối tháng trước).<br>3. Người dùng nhập chỉ số cuối cho từng phòng.<br>4. App hiển thị tiêu thụ dự kiến = cuối − đầu.<br>5. Người dùng bấm Lưu; app gửi `POST /chi-so-dien-nuoc`.<br>6. Backend kiểm tra, ghi nhận và trả kết quả; app hiển thị Snackbar thành công. |
-| **Luồng thay thế** | 3a. Chỉ số cuối nhỏ hơn chỉ số đầu → backend trả `400` kèm `chi_tiet.truong`; app `setError` đúng ô nhập.<br>3b. Tháng đã có chỉ số → `409`; app báo “tháng này đã ghi chỉ số”.<br>3c. Tiêu thụ điện cao hơn 50% trung bình 3 tháng trước → backend trả `canh_bao`; app hiện cảnh báo vàng và yêu cầu xác nhận lại trước khi lưu. |
+| **Luồng chính** | 1. Người dùng chọn khu và tháng, app tải lịch sử chỉ số của khu.<br>2. Bấm nút “Ghi chỉ số”, app mở hộp thoại chọn phòng và nhập tháng + chỉ số điện/nước đầu – cuối.<br>3. App tự lấy chỉ số đầu kỳ từ bản ghi có tháng lớn nhất nhưng nhỏ hơn tháng đang ghi; đổi phòng hoặc đổi tháng thì lấy lại.<br>4. App hiển thị tiêu thụ dự kiến = cuối − đầu ngay khi nhập.<br>5. Người dùng bấm Lưu; app gửi `POST /chi-so-dien-nuoc`.<br>6. Backend kiểm tra, ghi nhận và trả kết quả; app đóng hộp thoại, tải lại danh sách và hiển thị kết quả. |
+| **Luồng thay thế** | 3a. Chỉ số cuối nhỏ hơn chỉ số đầu → backend trả `400` kèm `chi_tiet.truong`; app `setError` đúng ô nhập.<br>3b. Tháng đã có chỉ số → `409`; app hiển thị nguyên văn thông báo của backend.<br>3c. Tiêu thụ điện cao hơn 50% trung bình 3 tháng trước → backend trả `canh_bao`; sau khi lưu app hiện hộp thoại cảnh báo để chủ trọ đối chiếu lại chỉ số. |
 | **Hậu điều kiện** | Bản ghi `chi_so_dien_nuoc` được tạo; `ghi_boi` = id người gọi; dữ liệu sẵn sàng cho phát hành hóa đơn. |
 
 ### UC07 – Phát hành hóa đơn tháng cho cả khu
@@ -210,7 +210,7 @@ flowchart LR
 |---|---|
 | **Tác nhân** | Chủ trọ |
 | **Tiền điều kiện** | Đã đăng nhập vai trò `CHU_TRO` |
-| **Luồng chính** | 1. Người dùng mở màn Báo cáo.<br>2. App gọi song song `GET /bao-cao/tong-quan`, `/bao-cao/cong-no`, `/bao-cao/lap-day`, `/bao-cao/doanh-thu`, `/bao-cao/tieu-thu-bat-thuong`.<br>3. Dữ liệu được vẽ: cột doanh thu theo khu, tròn tỷ lệ lấp đầy, bảng công nợ, danh sách tiêu thụ bất thường.<br>4. Người dùng đổi bộ lọc khu/tháng, app gọi lại. |
+| **Luồng chính** | 1. Người dùng mở màn Báo cáo.<br>2. App gọi song song 4 API: `/bao-cao/doanh-thu` (6 tháng gần nhất), `/bao-cao/lap-day`, `/bao-cao/cong-no`, `/bao-cao/tieu-thu-bat-thuong` (theo tháng đang chọn).<br>3. Dữ liệu được vẽ: cột doanh thu theo tháng, tròn tỷ lệ lấp đầy, bảng công nợ, danh sách tiêu thụ bất thường.<br>4. Người dùng đổi tháng ở phần tiêu thụ bất thường, app chỉ gọi lại API tương ứng. |
 | **Luồng thay thế** | 2a. `QUAN_LY` gọi `/bao-cao/doanh-thu` → `403`.<br>2b. Mất mạng → hiện trạng thái lỗi kèm nút “Thử lại”, giữ dữ liệu cũ nếu đã có. |
 | **Hậu điều kiện** | Không thay đổi dữ liệu; chỉ đọc. |
 
@@ -224,7 +224,7 @@ flowchart LR
 | Bảo mật | Phân quyền thật ở backend | Middleware `xacThuc` + `choPhep`; app chỉ ẩn menu |
 | Toàn vẹn | Không tạo hóa đơn trùng | `UNIQUE(hop_dong_id, thang)` + kiểm tra trước khi insert |
 | Toàn vẹn | Không nhận chỉ số vô lý | `CHECK(dien_cuoi >= dien_dau)`, `CHECK(nuoc_cuoi >= nuoc_dau)` |
-| Trải nghiệm | Không mất dữ liệu khi xoay | `onSaveInstanceState`, ViewModel, hoặc tải lại theo id |
+| Trải nghiệm | Không mất dữ liệu khi xoay | `android:configChanges` giữ nguyên Activity/form/dialog; `onSaveInstanceState` dự phòng khi process death; tải lại theo id |
 | Trải nghiệm | 3 trạng thái rõ ràng | `TrangThaiManHinh`: đang tải / xong / lỗi + rỗng |
 | Tương thích | Máy Android 7.0 trở lên | `minSdk 24`, `targetSdk 37` |
 | Ngôn ngữ | Toàn bộ giao diện tiếng Việt | `strings.xml` + định dạng `vi-VN` |
