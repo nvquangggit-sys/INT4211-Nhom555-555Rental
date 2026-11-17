@@ -28,8 +28,10 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 - **Tài liệu API:** [`backend/api.md`](backend/api.md)
 - **Postman collection:** [`backend/postman/555Rental.postman_collection.json`](backend/postman/555Rental.postman_collection.json)
 - **APK Admin (release):** [`admin-android/releases/555Rental-Admin-v1.0.0.apk`](admin-android/releases/555Rental-Admin-v1.0.0.apk)
+- **APK Client (release):** [`client-flutter/releases/555Rental-Khach-v1.0.0.apk`](client-flutter/releases/555Rental-Khach-v1.0.0.apk)
 - **Báo cáo phần Backend - CSDL - triển khai:** [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md)
 - **Báo cáo phần App Admin:** [`docs/bao-cao-muc-2-phan-tich-yeu-cau.md`](docs/bao-cao-muc-2-phan-tich-yeu-cau.md), [`docs/bao-cao-muc-5-giao-dien-admin.md`](docs/bao-cao-muc-5-giao-dien-admin.md), [`docs/bao-cao-muc-7-kiem-thu-admin.md`](docs/bao-cao-muc-7-kiem-thu-admin.md)
+- **Báo cáo phần App Client:** [`docs/bao-cao-muc-1-gioi-thieu.md`](docs/bao-cao-muc-1-gioi-thieu.md), [`docs/bao-cao-muc-5-giao-dien-client.md`](docs/bao-cao-muc-5-giao-dien-client.md), [`docs/bao-cao-muc-7-kiem-thu-client.md`](docs/bao-cao-muc-7-kiem-thu-client.md)
 
 > Render Free ngủ sau 15 phút không có request. Trước khi demo nên gọi
 > `/health` khoảng 3 phút để đánh thức service.
@@ -39,8 +41,8 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 ### Người thuê / khách
 
 - Tìm phòng trống theo khu vực, khoảng giá, diện tích, sức chứa.
-- Xem chi tiết phòng, đặt lịch xem, theo dõi trạng thái lịch.
-- Xem hợp đồng, hóa đơn từng tháng (tiền phòng, điện, nước, rác, gửi xe).
+- Xem chi tiết phòng, đặt lịch xem, theo dõi trạng thái lịch, hủy lịch kèm **Hoàn tác**.
+- Xem hợp đồng (cảnh báo còn ≤ 30 ngày), hóa đơn từng tháng (tiền phòng, điện, nước, rác, gửi xe) và chỉ số điện/nước.
 - Gửi xác nhận chuyển khoản kèm ảnh biên lai, xem lịch sử thanh toán.
 - Báo sự cố kèm ảnh, theo dõi trạng thái xử lý.
 - Nhận nhắc hạn hóa đơn và hợp đồng sắp hết hạn.
@@ -65,6 +67,15 @@ Repo gồm 3 phần dùng chung một cơ sở dữ liệu PostgreSQL:
 - 3 trạng thái: đang tải / thành công (kể cả rỗng) / lỗi mạng có nút Thử lại.
 - Báo cáo có biểu đồ cột doanh thu và biểu đồ tròn tỷ lệ lấp đầy (MPAndroidChart).
 - Không mất dữ liệu khi xoay màn hình: `configChanges` giữ nguyên Activity/form/dialog, kèm `onSaveInstanceState` cho bộ lọc khi tiến trình bị thu hồi; APK release đã ký, sẵn sàng cài trên máy thật (xem `docs/huong-dan-build-apk.md`).
+
+### App Client (Flutter)
+
+- Đăng nhập / đăng ký người thuê, lưu JWT vào `shared_preferences`, tự đưa về đăng nhập khi `401` (chỉ khi đang có token).
+- 18 màn hình: Đăng nhập, Đăng ký, Khung chính 5 tab + Drawer, Trang chủ, Tìm phòng, Chi tiết phòng, Đặt lịch, Lịch xem của tôi, Hợp đồng, Hóa đơn, Chi tiết hóa đơn, Thanh toán, Lịch sử thanh toán, Sự cố, Báo sự cố, Nhắc hạn, Tài khoản, Địa chỉ API.
+- Tìm phòng: lọc khu vực / khoảng giá / diện tích, `ListView.builder`, đủ 3 trạng thái đang tải – lỗi – rỗng.
+- Ảnh mạng có `loadingBuilder` + `errorBuilder`; `Future` tạo trong `initState`, không tạo trong `build`.
+- Gửi biên lai và ảnh sự cố dạng `multipart/form-data`; chống gửi trùng 2 lớp (cờ `_dangGui` + backend trả `409`).
+- `flutter analyze` sạch, 21 test tự động, APK release đã ký (xem `docs/huong-dan-build-apk-client.md`).
 
 ### Phân quyền
 
@@ -139,16 +150,33 @@ INT4211-Nhom555-555Rental/
 │   ├── releases/                   # APK release đã ký
 │   └── gradlew.bat
 ├── client-flutter/                 # App Client (Flutter)
-└── docs/
-    ├── BAO_CAO_THANH_VIEN_A.md     # mục 3, 4, 6, 7, 8, 9 của báo cáo (A)
-    ├── bao-cao-muc-2-phan-tich-yeu-cau.md
-    ├── bao-cao-muc-5-giao-dien-admin.md
-    ├── bao-cao-muc-7-kiem-thu-admin.md
-    ├── bao-cao-muc-8-9-phan-cong-tu-danh-gia.md
-    ├── huong-dan-build-apk.md
-    ├── kich-ban-video-admin.md
-    ├── cau-hoi-bao-ve-admin.md
-    └── checklist-18-muc.md
+│   ├── lib/
+│   │   ├── main.dart               # MaterialApp, locale vi, điều hướng khi hết phiên
+│   │   ├── core/                   # ApiService (token, timeout 90s, UTF-8, 401), định dạng
+│   │   ├── models/                 # 8 model đọc JSON backend
+│   │   └── ui/                     # theme, widget dùng chung, 18 màn hình
+│   ├── test/                       # 21 test: định dạng, model, form đăng nhập/đăng ký
+│   ├── android/                    # Gradle, manifest, cấu hình ký release
+│   ├── releases/                   # APK release đã ký
+│   └── README.md
+├── docs/
+│   ├── BAO_CAO_THANH_VIEN_A.md     # mục 3, 4, 6, 7, 8, 9 của báo cáo (A)
+│   ├── bao-cao-muc-1-gioi-thieu.md # mục 1 (giới thiệu chung + phần Client)
+│   ├── bao-cao-muc-2-phan-tich-yeu-cau.md
+│   ├── bao-cao-muc-5-giao-dien-admin.md
+│   ├── bao-cao-muc-5-giao-dien-client.md
+│   ├── bao-cao-muc-7-kiem-thu-admin.md
+│   ├── bao-cao-muc-7-kiem-thu-client.md
+│   ├── bao-cao-muc-8-9-phan-cong-tu-danh-gia.md
+│   ├── huong-dan-build-apk.md
+│   ├── huong-dan-build-apk-client.md
+│   ├── kich-ban-video-admin.md
+│   ├── kich-ban-video-client.md
+│   ├── cau-hoi-bao-ve-admin.md
+│   ├── cau-hoi-bao-ve-client.md
+│   ├── minh-chung/README.md
+│   └── checklist-18-muc.md
+└── README.md
 ```
 
 ## Yêu cầu môi trường
@@ -251,17 +279,62 @@ Chi tiết keystore, lỗi cài đặt và cách đổi địa chỉ API: [`docs
 
 > Khóa ký trong `admin-android/keystore/` và `keystore.properties` chỉ dùng cho đồ án. Khi triển khai thật, tạo khóa riêng và không commit mật khẩu.
 
+## Chạy App Client (Flutter)
+
+### Yêu cầu
+
+- Flutter **3.35+** (máy build 3.47.3) / Dart 3, JDK 17+, Android SDK 36, `minSdk 24`.
+- Thiết bị Android 7.0+ hoặc emulator; kiểm tra môi trường bằng `flutter doctor -v`.
+
+### Các bước
+
+1. Cài phụ thuộc:
+   ```powershell
+   cd client-flutter
+   flutter pub get
+   ```
+2. Kiểm tra chất lượng và chạy:
+   ```powershell
+   flutter analyze     # Kỳ vọng: No issues found!
+   flutter test        # Kỳ vọng: +21: All tests passed!
+   flutter run
+   ```
+3. Build APK release:
+   ```powershell
+   flutter clean
+   flutter pub get
+   flutter build apk --release
+   Copy-Item build\app\outputs\flutter-apk\app-release.apk `
+     releases\555Rental-Khach-v1.0.0.apk -Force
+   ```
+4. Cài APK có sẵn:
+   ```powershell
+   adb install -r client-flutter\releases\555Rental-Khach-v1.0.0.apk
+   ```
+
+Chi tiết keystore, ký APK và lỗi thường gặp: [`docs/huong-dan-build-apk-client.md`](docs/huong-dan-build-apk-client.md).
+
+> Bản release ký bằng `client-flutter/android/app/555rental-release.jks` + `android/key.properties` (**không commit**). Nếu thiếu `key.properties`, Gradle tự ký bằng debug key để người khác vẫn build được.
+
+### Đổi địa chỉ API (App Client)
+
+Ở màn đăng nhập (hoặc **Tài khoản → Địa chỉ API**) → nhập URL → **Kiểm tra kết nối** → **Lưu**.
+App tự thêm `https://` nếu thiếu và bỏ dấu `/` cuối. Mặc định: `https://rental-nhom555-api.onrender.com`.
+
+- Emulator + backend local: `http://10.0.2.2:3000`
+- Máy thật + cáp USB: `adb reverse tcp:3000 tcp:3000` rồi `http://localhost:3000`
+
 ## Tài khoản thử
 
 Mật khẩu chung: `123456`
 
-| Vai trò | Email |
-|---|---|
-| Chủ trọ | `chutro@555rental.vn` |
-| Quản lý | `quanly@555rental.vn` |
-| Người thuê 01 | `nguoithue01@555rental.vn` |
-| Người thuê 02 | `nguoithue02@555rental.vn` |
-| ... | `nguoithue45@555rental.vn` |
+| Vai trò | Email | Dùng cho |
+|---|---|---|
+| Chủ trọ | `chutro@555rental.vn` | App Admin – toàn quyền |
+| Quản lý | `quanly@555rental.vn` | App Admin – Ghi chỉ số + Sự cố |
+| Người thuê 01 | `nguoithue01@555rental.vn` | App Client |
+| Người thuê 02 | `nguoithue02@555rental.vn` | App Client |
+| ... | `nguoithue45@555rental.vn` | App Client |
 
 ## Dữ liệu mẫu
 
@@ -340,6 +413,17 @@ Chi tiết 9 ca kiểm thử backend và kết quả thực tế nằm trong
 GitHub Actions chạy lại `npm test` mỗi lần push vào `main` (workflow
 `.github/workflows/backend-test.yml`).
 
+### Kiểm thử App Client
+
+```powershell
+cd client-flutter
+flutter analyze     # No issues found!
+flutter test        # 21/21 pass
+```
+
+Chi tiết 10 ca kiểm thử chức năng và bảng 21 test tự động:
+[`docs/bao-cao-muc-7-kiem-thu-client.md`](docs/bao-cao-muc-7-kiem-thu-client.md).
+
 ### Import Postman
 
 1. Mở Postman → **Import** → chọn
@@ -384,15 +468,23 @@ Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 củ
 | Tài liệu | Nội dung |
 |---|---|
 | [`docs/BAO_CAO_THANH_VIEN_A.md`](docs/BAO_CAO_THANH_VIEN_A.md) | Mục 3, 4, 6, 7, 8, 9 phần Backend – CSDL – triển khai |
+| [`docs/bao-cao-muc-1-gioi-thieu.md`](docs/bao-cao-muc-1-gioi-thieu.md) | Mục 1: bối cảnh, mục tiêu, phạm vi, kiến trúc tổng thể, kết quả |
 | [`docs/bao-cao-muc-2-phan-tich-yeu-cau.md`](docs/bao-cao-muc-2-phan-tich-yeu-cau.md) | Mục 2: bối cảnh, phạm vi, tác nhân, use case |
 | [`docs/bao-cao-muc-5-giao-dien-admin.md`](docs/bao-cao-muc-5-giao-dien-admin.md) | Mục 5: kiến trúc, điều hướng, 12 màn hình Admin |
+| [`docs/bao-cao-muc-5-giao-dien-client.md`](docs/bao-cao-muc-5-giao-dien-client.md) | Mục 5: kiến trúc, điều hướng, 18 màn hình App Client |
 | [`docs/bao-cao-muc-7-kiem-thu-admin.md`](docs/bao-cao-muc-7-kiem-thu-admin.md) | 8 ca kiểm thử App Admin |
+| [`docs/bao-cao-muc-7-kiem-thu-client.md`](docs/bao-cao-muc-7-kiem-thu-client.md) | 10 ca kiểm thử App Client + 21 test tự động + mã lỗi API thật |
 | [`docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md`](docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md) | Mục 8–9 phần App Admin |
-| [`docs/huong-dan-build-apk.md`](docs/huong-dan-build-apk.md) | Build, ký và cài APK release |
+| [`docs/huong-dan-build-apk.md`](docs/huong-dan-build-apk.md) | Build, ký và cài APK Admin |
+| [`docs/huong-dan-build-apk-client.md`](docs/huong-dan-build-apk-client.md) | Build, ký và cài APK Client |
 | [`docs/kich-ban-video-admin.md`](docs/kich-ban-video-admin.md) | Kịch bản video phần Admin |
+| [`docs/kich-ban-video-client.md`](docs/kich-ban-video-client.md) | Kịch bản video phần Client (5–6 phút, 10 cảnh) |
 | [`docs/minh-chung/README.md`](docs/minh-chung/README.md) | Danh sách ảnh/video minh chứng và cách chụp |
-| [`docs/cau-hoi-bao-ve-admin.md`](docs/cau-hoi-bao-ve-admin.md) | 6 câu hỏi bảo vệ + câu trả lời |
+| [`docs/cau-hoi-bao-ve-admin.md`](docs/cau-hoi-bao-ve-admin.md) | 6 câu hỏi bảo vệ phần Admin |
+| [`docs/cau-hoi-bao-ve-client.md`](docs/cau-hoi-bao-ve-client.md) | 10 câu hỏi bảo vệ phần Client |
 | [`docs/checklist-18-muc.md`](docs/checklist-18-muc.md) | Checklist 18 mục trước khi nộp |
+| [`client-flutter/README.md`](client-flutter/README.md) | Cấu trúc, API sử dụng, test, build APK Client |
+| [`backend/README.md`](backend/README.md) | Cài đặt backend, endpoint phía khách, mã lỗi |
 
 ## Bảo mật
 
@@ -408,7 +500,8 @@ Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 củ
 
 - Chưa tích hợp VietQR động (số tiền + nội dung chuyển khoản).
 - Chưa xuất hợp đồng / hóa đơn ra PDF.
-- Chưa có thông báo đẩy; app Client đang dùng màn hình nhắc hạn.
+- Chưa có thông báo đẩy; app Client đang dùng màn hình nhắc hạn và badge trên AppBar.
+- App Client đặt timeout 90 giây vì Render Free ngủ sau 15 phút; lần gọi đầu có thể chậm 30–60 giây.
 - Render Free ngủ sau 15 phút, cần đánh thức trước khi demo.
 - Supabase Free tạm dừng sau 7 ngày không hoạt động, cần khôi phục trước buổi bảo vệ.
 
@@ -418,7 +511,7 @@ Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 củ
 |---|---|---|
 | Nguyễn Việt Quang | 35% | Backend, CSDL, triển khai |
 | Trần Phước Vinh | 32% | App Admin (Android), báo cáo mục 2, 5, 7, 8, 9 |
-| Nguyễn Phạm Chí Thành | 33% | App Client (Flutter), route API phía khách |
+| Nguyễn Phạm Chí Thành | 33% | App Client (Flutter), route API phía khách, báo cáo mục 1, 5, 7 phần Client |
 
 ## Giấy phép
 
