@@ -22,7 +22,7 @@ Một hệ thống di động gồm **app cho chủ trọ**, **app cho người 
 | Chủ trọ/quản lý thao tác trên điện thoại | App **555Rental Admin** (Android, Java + XML + Retrofit) |
 | Người thuê tự tra cứu, thanh toán, báo sự cố | App **555Rental Khách** (Flutter) – phần của thành viên C |
 | Dùng chung một nguồn dữ liệu | Backend REST API Node.js + Express + JWT, deploy Render, CSDL Supabase |
-| Có kiểm thử và minh chứng | 8 ca kiểm thử Client + 8 ca Admin, APK release đã ký, video demo |
+| Có kiểm thử và minh chứng | 10 ca kiểm thử Client + 21 test tự động + 8 ca Admin, APK release đã ký, video demo |
 
 ## 1.3. Phạm vi
 
