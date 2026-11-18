@@ -474,7 +474,7 @@ Chi tiết lỗi thường gặp (IPv6, SSL, 502, Render ngủ) xem mục 6 củ
 | [`docs/bao-cao-muc-5-giao-dien-client.md`](docs/bao-cao-muc-5-giao-dien-client.md) | Mục 5: kiến trúc, điều hướng, 18 màn hình App Client |
 | [`docs/bao-cao-muc-7-kiem-thu-admin.md`](docs/bao-cao-muc-7-kiem-thu-admin.md) | 8 ca kiểm thử App Admin |
 | [`docs/bao-cao-muc-7-kiem-thu-client.md`](docs/bao-cao-muc-7-kiem-thu-client.md) | 10 ca kiểm thử App Client + 21 test tự động + mã lỗi API thật |
-| [`docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md`](docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md) | Mục 8–9 phần App Admin |
+| [`docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md`](docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md) | Mục 8–9 phần App Admin (B) và App Client (C) |
 | [`docs/huong-dan-build-apk.md`](docs/huong-dan-build-apk.md) | Build, ký và cài APK Admin |
 | [`docs/huong-dan-build-apk-client.md`](docs/huong-dan-build-apk-client.md) | Build, ký và cài APK Client |
 | [`docs/kich-ban-video-admin.md`](docs/kich-ban-video-admin.md) | Kịch bản video phần Admin |

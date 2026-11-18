@@ -6,6 +6,7 @@ App dành cho **người thuê** trong hệ thống quản lý nhà trọ – đ
 - APK release: [`releases/555Rental-Khach-v1.0.0.apk`](releases/555Rental-Khach-v1.0.0.apk)
 - Báo cáo giao diện: [`../docs/bao-cao-muc-5-giao-dien-client.md`](../docs/bao-cao-muc-5-giao-dien-client.md)
 - Hướng dẫn build: [`../docs/huong-dan-build-apk-client.md`](../docs/huong-dan-build-apk-client.md)
+- Danh sách ảnh/video minh chứng: [`../docs/minh-chung/README.md`](../docs/minh-chung/README.md) (mục 6)
 
 ## Tính năng
 
@@ -13,7 +14,7 @@ App dành cho **người thuê** trong hệ thống quản lý nhà trọ – đ
 |---|---|
 | Tài khoản | Đăng nhập, đăng ký, lưu phiên JWT, tự đăng xuất khi 401, đổi địa chỉ API, đăng xuất |
 | Tìm phòng | Lọc theo khu vực / khoảng giá / diện tích, danh sách phòng trống, chi tiết phòng, bảng giá điện nước, tiện ích, liên hệ chủ trọ |
-| Đặt lịch | Chọn ngày + giờ, ghi chú, đặt lịch xem phòng, hủy lịch có xác nhận và **Hoàn tác** |
+| Đặt lịch | Chọn ngày + giờ, đặt lịch xem phòng, hủy lịch có xác nhận và **Hoàn tác** |
 | Hợp đồng | Thời hạn, tiền cọc, thanh tiến trình, cảnh báo **≤ 30 ngày** hoặc quá hạn |
 | Hóa đơn | Danh sách + tổng nợ, chi tiết từng khoản, chỉ số điện/nước, lịch sử thanh toán |
 | Thanh toán | Gửi xác nhận chuyển khoản kèm **ảnh biên lai**, chống gửi trùng, lịch sử giao dịch |

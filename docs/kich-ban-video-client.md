@@ -52,7 +52,7 @@
 **Lời thoại:**
 
 > “Trang chủ tổng hợp mọi việc người thuê cần biết: banner nhắc hạn lấy từ API `/nhac-han`, 4 lối tắt, hợp đồng đang thuê và hóa đơn gần nhất.
-> Hóa đơn tháng 10 đã quá hạn 7 ngày nên banner chuyển màu đỏ. Chuông trên góc phải cũng hiện badge số việc.”
+> Hóa đơn tháng 10 đã quá hạn nên banner chuyển màu đỏ. Chuông trên góc phải cũng hiện badge số việc.”
 
 **Thao tác:** Kéo xuống để refresh; chỉ vào banner, thẻ hợp đồng, thẻ hóa đơn; bấm chuông → mở màn Nhắc hạn rồi quay lại.
 
@@ -76,10 +76,10 @@
 
 **Lời thoại:**
 
-> “Bấm Đặt lịch xem phòng, app mở DatePicker và TimePicker tiếng Việt. Em chọn ngày mai lúc 9 giờ, thêm ghi chú.
+> “Bấm Đặt lịch xem phòng, app mở DatePicker và TimePicker tiếng Việt. Em chọn ngày mai lúc 9 giờ.
 > App chặn thời gian trong quá khứ, khóa nút khi đang gửi, và trả kết quả về màn trước bằng `Navigator.pop(true)` để danh sách tự tải lại.”
 
-**Thao tác:** Chọn ngày/giờ → nhập ghi chú “Muốn xem phòng buổi sáng” → Gửi yêu cầu → SnackBar thành công → quay về danh sách.
+**Thao tác:** Chọn ngày/giờ → Gửi yêu cầu → SnackBar thành công → quay về danh sách.
 
 ### Cảnh 6 – Hủy lịch và Hoàn tác (2:40 – 3:10)
 
@@ -139,7 +139,7 @@
 
 > “App đặt timeout 90 giây vì Render Free ngủ sau 15 phút, và bắt lỗi mất mạng bằng thông báo thân thiện kèm nút Thử lại.
 > Mọi request 401 đều xóa phiên và đưa về đăng nhập. Em cũng có màn Tài khoản để xem hồ sơ, đổi địa chỉ API khi demo backend local, và đăng xuất có xác nhận.
-> Phần Client gồm 18 màn hình, `flutter analyze` không có cảnh báo, `flutter test` pass 21 test, APK release đã ký và cài trên máy thật. Cảm ơn thầy/cô và các bạn đã theo dõi."
+> Phần Client gồm 18 màn hình, `flutter analyze` không có cảnh báo, `flutter test` pass 21 test, APK release đã ký và sẵn sàng cài trên máy thật. Cảm ơn thầy/cô và các bạn đã theo dõi.”
 
 **Thao tác:** Tắt Wi-Fi → kéo xuống ở Trang chủ → màn lỗi → bật Wi-Fi → Thử lại. Mở Tài khoản → Đăng xuất → xác nhận.
 
@@ -151,4 +151,4 @@
 - [ ] Có tiếng nói, không quá ồn; hoặc chèn phụ đề theo lời thoại.
 - [ ] Mỗi cảnh có thao tác thật, không cắt ghép quá nhiều.
 - [ ] Có ít nhất một cảnh chứng minh **lỗi** (sai mật khẩu, mất mạng, 409) và cách app xử lý.
-- [ ] Xuất file `docs/minh-chung/video-client.mp4` (hoặc link Drive) và ghi vào README.
+- [ ] Xuất file `docs/minh-chung/client-demo.mp4` (hoặc link Drive) và ghi vào README.

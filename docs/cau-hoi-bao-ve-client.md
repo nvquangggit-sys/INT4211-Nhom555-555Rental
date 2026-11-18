@@ -1,6 +1,6 @@
 # Câu hỏi bảo vệ – App Client (Flutter)
 
-> 8 câu hỏi thường gặp cho phần của thành viên C. Câu trả lời bám sát mã nguồn `client-flutter/` và `backend/src/routes/khach.js`.
+> 10 câu hỏi thường gặp cho phần của thành viên C. Câu trả lời bám sát mã nguồn `client-flutter/` và `backend/src/routes/khach.js`.
 
 ---
 
@@ -34,7 +34,7 @@
 - Mỗi request cần đăng nhập có header `Authorization: Bearer <token>` do `ApiService._headers()` gắn tự động.
 - `ApiService._xuLy()`: nếu status `401` **và đang có token** thì ném `PhienHetHanException`; `_goi()` bắt exception này, gọi `dangXuat()` (xóa token) và `khiHetPhien` → `main.dart` dùng `GlobalKey<NavigatorState>` đẩy về `LoginScreen(daHetPhien: true)`, xóa stack cũ.
 - Điều kiện “đang có token” rất quan trọng: khi người dùng đăng nhập sai, backend trả 401 nhưng không có token → app hiện thông điệp “Email hoặc mật khẩu không đúng” thay vì nhảy màn hình.
-- Hạn token 7 ngày (`JWT_EXPIRES_IN`), hết hạn thì quy trình trên tự đưa về đăng nhập.
+- Hạn token 7 ngày (`JWT_HAN`, mặc định `7d`), hết hạn thì quy trình trên tự đưa về đăng nhập. Nhiều request cùng nhận `401` chỉ đẩy về đăng nhập một lần vì `_goi()` kiểm tra token còn hay đã bị xóa.
 
 ---
 
@@ -77,7 +77,7 @@
 
 **Trả lời:**
 
-- Backend tính `(h.ket_thuc::date - CURRENT_DATE)::int AS so_ngay_con_lai` để tránh lệch múi giờ và tránh mỗi client tính một kiểu.
+- Backend tính `(h.ket_thuc - CURRENT_DATE)::int AS so_ngay_con_lai` để tránh lệch múi giờ và tránh mỗi client tính một kiểu.
 - Client dùng giá trị này; nếu thiếu (0) thì fallback `DinhDang.soNgayConLai(ketThuc)` – tính theo ngày, bỏ phần giờ.
 - Quy ước: `> 30` bình thường; `0..30` sắp hết hạn → thanh tiến trình và khối cảnh báo màu cam kèm SĐT chủ trọ; `< 0` đã hết hạn → màu đỏ.
 - API `/nhac-han` cũng lọc hợp đồng `HIEU_LUC` có `ket_thuc <= CURRENT_DATE + 30` nên app không phải tải tất cả rồi tự lọc.
@@ -89,7 +89,7 @@
 **Trả lời:**
 
 - Các route nằm trong `backend/src/routes/khach.js`, đều có tiền tố nghiệp vụ và hậu tố `/cua-toi` cho dữ liệu cá nhân: `/lich-xem-phong/cua-toi`, `/hop-dong/cua-toi`, `/hoa-don/cua-toi`, `/thanh-toan/cua-toi`, `/bao-su-co/cua-toi`, `/nhac-han`.
-- Phân quyền: middleware `xacThuc` kiểm tra JWT, `chiVaiTro('NGUOI_THUE')` chặn vai trò khác. Chủ trọ gọi endpoint khách → `403`.
+- Phân quyền: middleware `xacThuc` kiểm tra JWT, `choPhep('NGUOI_THUE')` chặn vai trò khác. Chủ trọ gọi endpoint khách → `403`.
 - Mã lỗi:
   - `400` dữ liệu sai (thiếu `phong_id`, thời gian quá khứ, số tiền ≤ 0, tham số lọc âm).
   - `401` thiếu/sai/hết hạn token.
@@ -106,7 +106,7 @@
 **Trả lời:**
 
 - Em phụ trách toàn bộ `client-flutter/`, `backend/src/routes/khach.js`, các tài liệu mục 1/5/7 phần Client, kịch bản video, Q&A và APK.
-- Em dùng AI như trợ lý soạn khung và rà lỗi chính tả, nhưng đã **đọc, chạy thật và sửa** từng phần: `flutter analyze`, `flutter test`, gọi API bằng `curl`, build APK và cài trên máy.
+- Em dùng AI như trợ lý soạn khung và rà lỗi chính tả, nhưng đã **đọc, chạy thật và sửa** từng phần: `flutter analyze`, `flutter test`, gọi API bằng `curl`, build APK và kiểm tra chữ ký bằng `apksigner`.
 - Các quyết định thiết kế (timeout 90 giây, 401 chỉ khi có token, chống gửi trùng 2 lớp, `IndexedStack`, `AnhMang` có errorBuilder) đều xuất phát từ lỗi thực tế gặp khi chạy demo, không phải copy nguyên mẫu.
 
 ---

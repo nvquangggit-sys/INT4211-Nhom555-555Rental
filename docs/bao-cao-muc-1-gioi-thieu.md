@@ -22,7 +22,7 @@ Một hệ thống di động gồm **app cho chủ trọ**, **app cho người 
 | Chủ trọ/quản lý thao tác trên điện thoại | App **555Rental Admin** (Android, Java + XML + Retrofit) |
 | Người thuê tự tra cứu, thanh toán, báo sự cố | App **555Rental Khách** (Flutter) – phần của thành viên C |
 | Dùng chung một nguồn dữ liệu | Backend REST API Node.js + Express + JWT, deploy Render, CSDL Supabase |
-| Có kiểm thử và minh chứng | 10 ca kiểm thử Client + 21 test tự động + 8 ca Admin, APK release đã ký, video demo |
+| Có kiểm thử và minh chứng | 10 ca kiểm thử Client + 21 test tự động + 8 ca Admin, APK release đã ký, kịch bản video demo |
 
 ## 1.3. Phạm vi
 
@@ -94,7 +94,7 @@ Một hệ thống di động gồm **app cho chủ trọ**, **app cho người 
 
 1. **Đăng nhập / đăng ký** người thuê, lưu phiên, tự đăng xuất khi token hết hạn.
 2. **Tìm phòng trống** theo khu vực, khoảng giá, diện tích; xem chi tiết phòng, bảng giá điện – nước – rác – gửi xe, tiện ích, liên hệ chủ trọ.
-3. **Đặt lịch xem phòng** (chọn ngày, giờ, ghi chú); **hủy lịch** kèm hộp thoại xác nhận và nút **Hoàn tác**.
+3. **Đặt lịch xem phòng** (chọn ngày, giờ); **hủy lịch** kèm hộp thoại xác nhận và nút **Hoàn tác**.
 4. **Hợp đồng thuê của tôi**, cảnh báo khi còn **≤ 30 ngày**.
 5. **Hóa đơn hằng tháng**: chi tiết từng khoản, chỉ số điện/nước đầu – cuối, số tiêu thụ, lịch sử thanh toán của hóa đơn.
 6. **Gửi xác nhận thanh toán**: nhập số tiền, chọn chuyển khoản/tiền mặt, đính kèm ảnh biên lai; chống gửi trùng.
@@ -110,7 +110,7 @@ Một hệ thống di động gồm **app cho chủ trọ**, **app cho người 
 | Mã nguồn Client | `client-flutter/` – 18 màn hình, 8 model dữ liệu, tầng API dùng chung |
 | Chất lượng mã | `flutter analyze` → **No issues found!** |
 | Kiểm thử tự động | `flutter test` → **21 test pass** |
-| APK release | [`client-flutter/releases/555Rental-Khach-v1.0.0.apk`](../client-flutter/releases/555Rental-Khach-v1.0.0.apk) – đã ký, cài trên máy thật |
+| APK release | [`client-flutter/releases/555Rental-Khach-v1.0.0.apk`](../client-flutter/releases/555Rental-Khach-v1.0.0.apk) – đã ký, sẵn sàng cài trên máy thật |
 | Route API khách | `backend/src/routes/khach.js` – 13 endpoint (gồm upload ảnh), đủ mã lỗi 400/401/403/404/409 |
 | API chạy thật | <https://rental-nhom555-api.onrender.com> (health check `{"ok":true,"db":"ok"}`) |
 | Tài khoản demo | `nguoithue01@555rental.vn` / `123456` |

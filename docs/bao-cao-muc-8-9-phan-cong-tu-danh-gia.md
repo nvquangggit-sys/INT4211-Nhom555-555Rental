@@ -1,4 +1,4 @@
-# Mục 8 – Phân công và tiến độ (phần Thành viên B)
+# Mục 8 – Phân công và tiến độ (phần Thành viên B và C)
 
 > Thành viên B: **Trần Phước Vinh – 231A290104**
 > Vai trò: App Admin (Android, Java + XML), nhánh `admin-android/`.
@@ -206,7 +206,7 @@
 ## 8.C.4. Commit cá nhân
 
 - Tài khoản Git: `ChiThanh` – `nguyenphamchithanh2005@gmail.com`.
-- 19 commit có ý nghĩa, chia theo từng lớp: tầng API → model → theme → từng màn hình → cấu hình Android → test → APK → tài liệu → README.
+- 21 commit có ý nghĩa (cộng thêm các commit rà soát, sửa tài liệu), chia theo từng lớp: tầng API → model → theme → từng màn hình → cấu hình Android → test → APK → tài liệu → README.
 - Kiểm tra: `git log --oneline --author=ChiThanh` hoặc GitHub → **Insights → Contributors**.
 
 `[chèn ảnh: biểu đồ đóng góp GitHub của Nguyễn Phạm Chí Thành]`
@@ -228,8 +228,8 @@
 
 ## 8.C.6. Việc còn lại trước khi nộp
 
-- Chụp ảnh 10 ca theo bảng 7.5 → `docs/minh-chung/` (cần máy thật).
-- Quay video Client theo `docs/kich-ban-video-client.md` (quay **trước** phần Admin để B quay cảnh liên thông Admin → Client).
+- Chụp ảnh 10 ca theo bảng 7.5 → `docs/minh-chung/client-*.png` (danh sách chi tiết ở mục 6 của `docs/minh-chung/README.md`).
+- Quay video Client theo `docs/kich-ban-video-client.md` → `docs/minh-chung/client-demo.mp4` (quay **trước** phần Admin để B quay cảnh liên thông Admin → Client).
 - Đối chiếu 18 mục tự kiểm: xem `docs/checklist-18-muc.md`.
 - Nhờ chủ trọ xác nhận giao dịch 100.000 đ còn chờ trên hóa đơn id 1 để quay lại cảnh gửi biên lai thành công.
 

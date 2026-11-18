@@ -27,9 +27,9 @@
 | 12 | `flutter analyze` sạch | `cd client-flutter && flutter analyze` | ☐ | C |
 | 13 | `.env` không có trong repo (cả lịch sử) | `git log --all --oneline -- .env`; `git grep -i "JWT_SECRET" (git rev-list --all)` | ☐ | A |
 | 14 | README đủ link API, tài khoản thử, cách chạy | Đọc `README.md` | ☑ | Đã bổ sung phần App Admin |
-| 15 | Mỗi người ≥ 15 commit tài khoản riêng | `git shortlog -sne --all` | ☑ | B: đã có 18+ commit dưới tên `Vinh`; kiểm tra lại trước khi nộp |
+| 15 | Mỗi người ≥ 15 commit tài khoản riêng | `git shortlog -sne --all` | ☑ | B: 18+ commit dưới tên `Vinh`; C: 21+ commit dưới tên `ChiThanh`; kiểm tra lại trước khi nộp |
 | 16 | Báo cáo đủ 9 mục, có ERD + ≥ 25 ca kiểm thử | Đối chiếu `docs/` và báo cáo PDF | ☐ | Cả nhóm |
-| 17 | Video 5–8 phút, quay thật, có thuyết minh | Xem lại video trước khi nộp | ☐ | Cả nhóm – phần B quay **cuối cùng**, sau khi C xong: `docs/minh-chung/admin-demo.mp4` |
+| 17 | Video 5–8 phút, quay thật, có thuyết minh | Xem lại video trước khi nộp | ☐ | Cả nhóm – quay phần Client (`client-demo.mp4`) trước, phần Admin (`admin-demo.mp4`) **cuối cùng**, sau khi C xong |
 | 18 | Gọi thử API 3 phút trước giờ demo | Mở `/health` + đăng nhập thử | ☐ | A |
 
 ## Ghi chú riêng cho phần App Admin
@@ -54,8 +54,8 @@
 - [x] 18 màn hình, 5 tab `NavigationBar` + `Drawer`, `ListView.builder`, `Future` trong `initState`.
 - [x] Chống gửi trùng: cờ `_dangGui` ở app + `409` “Hóa đơn đang có giao dịch chờ chủ trọ xác nhận” ở backend.
 - [ ] Cài APK Client lên máy thật, đăng nhập `nguoithue01@555rental.vn` / `123456` (mục 8).
-- [ ] Chụp ảnh 10 ca theo bảng 7.5 → `docs/minh-chung/`.
-- [ ] Quay video phần Client → `docs/minh-chung/video-client.mp4` (quay **trước** phần Admin).
+- [ ] Chụp 11 ảnh theo mục 6.1 của `docs/minh-chung/README.md` → `docs/minh-chung/client-*.png`.
+- [ ] Quay video phần Client → `docs/minh-chung/client-demo.mp4` (quay **trước** phần Admin).
 - [ ] Cảnh liên thông “Admin thêm phòng/hóa đơn → Client thấy” (mục 9, phối hợp B).
 
 ## Lệnh kiểm tra nhanh

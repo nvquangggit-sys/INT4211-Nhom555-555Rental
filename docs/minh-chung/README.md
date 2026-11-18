@@ -1,7 +1,8 @@
-# Minh chứng chạy thật – phần App Admin (Thành viên B)
+# Minh chứng chạy thật – App Admin và App Client
 
-Thư mục này để chứa **ảnh chụp màn hình máy thật** và **video demo** của phần Admin.
-Đây là hai việc còn lại chưa tick trong `docs/checklist-18-muc.md` (mục 7 và 17).
+Thư mục này để chứa **ảnh chụp màn hình máy thật** và **video demo** của cả hai app.
+Với App Admin, đây là hai việc còn lại chưa tick trong `docs/checklist-18-muc.md` (mục 7 và 17).
+Với App Client, ảnh và video là minh chứng cho 10 ca kiểm thử trong `docs/bao-cao-muc-7-kiem-thu-client.md`.
 
 > Chỉ cần copy file vào đúng tên dưới đây, không phải sửa code. Ảnh chụp từ điện thoại
 > hay bằng `adb` đều được; ưu tiên ảnh không có thanh thông báo và không lộ thông tin cá nhân.
@@ -75,3 +76,52 @@ nút nguồn + giảm âm lượng. Video quay bằng ứng dụng ghi màn hìn
 Ảnh/video có thể chứa email, số điện thoại, IMEI. Nếu repo public, che các thông tin
 này trước khi commit, hoặc thêm `docs/minh-chung/*.jpg`, `*.png`, `*.mp4` vào
 `.gitignore` và chỉ nộp kèm file nén riêng.
+
+---
+
+## 6. Ảnh và video App Client (Thành viên C)
+
+Thiết bị: Android 7.0+ đã cài `client-flutter/releases/555Rental-Khach-v1.0.0.apk`.
+Đăng nhập `nguoithue01@555rental.vn` / `123456`. Gọi `/health` trước khi quay để đánh thức Render.
+
+### 6.1. Ảnh cần chụp (theo bảng 7.5)
+
+| Tên file | Chụp gì | Dùng cho |
+|---|---|---|
+| `client-01-dang-nhap.png` | Trang chủ sau khi đăng nhập, và ảnh phụ mở lại app vẫn ở Trang chủ | TC-C01 |
+| `client-02-sai-mat-khau.png` | Màn đăng nhập có dòng đỏ “Email hoặc mật khẩu không đúng.” | TC-C02 |
+| `client-03-validate.png` | Form đăng nhập/đăng ký có 2 ô báo đỏ | TC-C03 |
+| `client-04-tim-phong.png` | Danh sách phòng sau lọc `Bình Thạnh` + màn rỗng khi lọc dưới 3 triệu | TC-C04 |
+| `client-05-chi-tiet-phong.png` | Chi tiết phòng 117 + màn đặt lịch có DatePicker/TimePicker | TC-C05 |
+| `client-06-hoan-tac.png` | SnackBar “Đã hủy lịch…” có nút **Hoàn tác** + danh sách sau khi hoàn tác | TC-C06 |
+| `client-07-hoa-don.png` | Chi tiết hóa đơn tháng 10: 5 khoản + chỉ số điện/nước | TC-C07 |
+| `client-08-thanh-toan.png` | Màn xác nhận thanh toán đã chọn ảnh biên lai (hoặc dialog `409` chống gửi trùng) | TC-C07 |
+| `client-09-hop-dong.png` | Màn hợp đồng có khối cảnh báo cam (dùng hợp đồng mẫu còn ≤ 30 ngày) | TC-C08 |
+| `client-10-su-co.png` | Form báo sự cố có ảnh + timeline trạng thái | TC-C09 |
+| `client-11-mat-mang.png` | Banner nhắc hạn quá hạn + màn lỗi mạng có nút **Thử lại** | TC-C10 |
+
+Tối thiểu để chứng minh phần C: `client-01`, `client-04`, `client-06`, `client-07`, `client-10`.
+
+### 6.2. Video
+
+| Tên file | Nội dung | Thời lượng |
+|---|---|---|
+| `client-demo.mp4` | Toàn bộ phần C theo `docs/kich-ban-video-client.md`, có tiếng thuyết minh | 5:00 – 6:00 |
+
+Quay **trước** phần Admin để cảnh chuyển tiếp và cảnh liên thông “Admin thêm → Client thấy” khớp dữ liệu.
+
+### 6.3. Cách chụp nhanh bằng ADB
+
+```powershell
+# Cài APK Client
+adb install -r client-flutter\releases\555Rental-Khach-v1.0.0.apk
+
+# Chụp màn hình đang mở
+adb exec-out screencap -p > docs\minh-chung\client-04-tim-phong.png
+
+# Quay video thủ công bằng ứng dụng ghi màn hình của điện thoại,
+# hoặc dùng scrcpy nếu đã cài.
+```
+
+Sau khi có ảnh: chèn vào báo cáo mục 5/7, tick `docs/checklist-18-muc.md` mục 8, 9, 17,
+và cập nhật `docs/bao-cao-muc-8-9-phan-cong-tu-danh-gia.md` (mục 8.C.6).

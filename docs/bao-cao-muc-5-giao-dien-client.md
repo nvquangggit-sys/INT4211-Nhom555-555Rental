@@ -21,7 +21,8 @@ client-flutter/lib/
 │   ├── hoa_don.dart              # Hóa đơn + chi tiết khoản + thanh toán + chỉ số
 │   ├── thanh_toan.dart           # Giao dịch thanh toán
 │   ├── su_co.dart                # Báo cáo sự cố + loại sự cố
-│   └── nhac_han.dart             # Nhắc hạn hóa đơn/hợp đồng
+│   ├── nhac_han.dart             # Nhắc hạn hóa đơn/hợp đồng
+│   └── ho_tro.dart               # Hàm đọc JSON an toàn dùng chung cho model
 └── ui/
     ├── theme.dart                # Màu, theme Material 3, các khối trạng thái dùng chung
     ├── widgets/
@@ -76,7 +77,7 @@ Kỹ thuật điều hướng:
 | 4 | Trang chủ | `home_tab.dart` | `/nhac-han`, `/hop-dong/cua-toi`, `/hoa-don/cua-toi` | Banner nhắc hạn, 4 lối tắt, tóm tắt hợp đồng + hóa đơn gần nhất |
 | 5 | Tìm phòng | `rooms_tab.dart` | `GET /phong` | Lọc khu vực/giá/diện tích, `ListView.builder`, 3 trạng thái |
 | 6 | Chi tiết phòng | `room_detail_screen.dart` | `GET /phong/:id` | Ảnh lớn, thông tin, bảng giá, tiện ích, liên hệ chủ trọ |
-| 7 | Đặt lịch xem | `booking_screen.dart` | `POST /lich-xem-phong` | DatePicker + TimePicker, ghi chú, chống bấm hai lần |
+| 7 | Đặt lịch xem | `booking_screen.dart` | `POST /lich-xem-phong` | DatePicker + TimePicker, chặn quá khứ, chống bấm hai lần |
 | 8 | Lịch xem của tôi | `my_bookings_screen.dart` | `GET /lich-xem-phong/cua-toi`, `DELETE /lich-xem-phong/:id`, `POST /lich-xem-phong` | Hủy có hộp thoại, SnackBar **Hoàn tác** |
 | 9 | Hợp đồng | `contracts_screen.dart` | `GET /hop-dong/cua-toi` | Tiến trình thời hạn, cảnh báo ≤ 30 ngày, cảnh báo quá hạn |
 | 10 | Hóa đơn | `invoices_tab.dart` | `GET /hoa-don/cua-toi` | Tổng nợ, lọc Tất cả/Còn nợ/Đã đủ, mở lịch sử thanh toán |
@@ -107,7 +108,7 @@ Kỹ thuật điều hướng:
 ### 5.4.2. Đăng ký (`register_screen.dart`)
 
 - 5 ô: họ tên, email, số điện thoại, mật khẩu, nhập lại mật khẩu.
-- Validate: họ tên ≥ 2 ký tự; email đúng định dạng; SĐT bắt đầu bằng 0 và đủ 10–11 số (khớp backend); mật khẩu ≥ 6; nhập lại phải khớp.
+- Validate: họ tên ≥ 2 ký tự; email đúng định dạng; SĐT bắt đầu bằng 0 và đủ 10–11 số (app kiểm tra chặt hơn backend – backend chỉ giới hạn độ dài chuỗi); mật khẩu ≥ 6; nhập lại phải khớp.
 - Gọi `POST /auth/dang-ky`; thành công hiện SnackBar và `Navigator.pop(email)` về màn đăng nhập, tự điền email vừa tạo.
 - Lỗi 409 (email đã tồn tại) hiện đúng thông điệp backend.
 
@@ -159,9 +160,8 @@ Kỹ thuật điều hướng:
 - Tóm tắt phòng đang đặt.
 - Chọn ngày bằng `showDatePicker` (từ hôm nay đến +60 ngày, tiếng Việt) và giờ bằng `showTimePicker` (định dạng 24h).
 - Kiểm tra thời gian phải sau hiện tại ít nhất 30 phút; báo lỗi tại chỗ nếu không.
-- Ghi chú tối đa 300 ký tự.
 - Gửi `POST /lich-xem-phong` với `thoi_gian` ISO UTC; khi đang gửi khóa nút (không gửi trùng).
-- Thành công: SnackBar + `Navigator.pop(true)`; lỗi 400/404/409 hiện nguyên văn thông điệp backend (ví dụ “Phòng đã được thuê, không thể đặt lịch”, “Bạn đã có lịch chờ xác nhận cho phòng này”).
+- Thành công: SnackBar + `Navigator.pop(true)`; lỗi 400/404/409 hiện nguyên văn thông điệp backend (ví dụ “Phòng này không còn trống để xem”, “Khung giờ này đã có người đặt lịch xem”).
 
 ### 5.4.8. Lịch xem phòng của tôi (`my_bookings_screen.dart`)
 
@@ -169,7 +169,7 @@ Kỹ thuật điều hướng:
 - Chỉ lịch `CHO_XAC_NHAN` và còn ở tương lai mới hiện nút **Hủy lịch**.
 - Hủy theo 2 bước: `AlertDialog` “Hủy lịch xem phòng?” → gọi `DELETE /lich-xem-phong/:id`.
 - Sau khi hủy: tải lại danh sách + `SnackBar` 6 giây có nút **Hoàn tác**; bấm Hoàn tác sẽ `POST /lich-xem-phong` tạo lại đúng phòng, đúng thời gian.
-- Lỗi 404/409 hiện SnackBar đỏ với thông điệp backend (ví dụ lịch đã được chủ trọ xác nhận).
+- Lỗi 404 hiện SnackBar đỏ với thông điệp backend (ví dụ lịch đã được chủ trọ xác nhận hoặc không còn chờ xác nhận).
 
 ### 5.4.9. Hợp đồng thuê (`contracts_screen.dart`)
 
