@@ -45,6 +45,19 @@
 - [ ] Quay đoạn video phần Admin → `cd admin-android; .\tools\minh-chung.ps1 -Quay`.
 - [ ] Cài APK trên máy thật và tick mục 7, 10, 11 → `.\tools\minh-chung.ps1 -Cai`.
 
+## Ghi chú riêng cho phần App Client
+
+- [x] `flutter analyze` → **No issues found!**
+- [x] `flutter test` → **21/21 pass** (định dạng, model, form đăng nhập/đăng ký).
+- [x] Build `flutter build apk --release` thành công; `apksigner verify` đạt, chữ ký `CN=Nguyen Pham Chi Thanh`.
+- [x] Kiểm tra `400` / `401` / `403` / `404` / `409` bằng `curl` trên API thật (bảng 7.4 trong `docs/bao-cao-muc-7-kiem-thu-client.md`).
+- [x] 18 màn hình, 5 tab `NavigationBar` + `Drawer`, `ListView.builder`, `Future` trong `initState`.
+- [x] Chống gửi trùng: cờ `_dangGui` ở app + `409` “Hóa đơn đang có giao dịch chờ chủ trọ xác nhận” ở backend.
+- [ ] Cài APK Client lên máy thật, đăng nhập `nguoithue01@555rental.vn` / `123456` (mục 8).
+- [ ] Chụp ảnh 10 ca theo bảng 7.5 → `docs/minh-chung/`.
+- [ ] Quay video phần Client → `docs/minh-chung/video-client.mp4` (quay **trước** phần Admin).
+- [ ] Cảnh liên thông “Admin thêm phòng/hóa đơn → Client thấy” (mục 9, phối hợp B).
+
 ## Lệnh kiểm tra nhanh
 
 ```powershell
