@@ -240,8 +240,13 @@ class ApiService {
     try {
       return await ham();
     } on PhienHetHanException {
+      // Nhiều request có thể cùng nhận 401. Chỉ request đầu tiên (lúc token còn)
+      // được điều hướng; các request sau không đẩy thêm màn đăng nhập.
+      final conPhien = (_token ?? '').isNotEmpty;
       await dangXuat();
-      khiHetPhien?.call();
+      if (conPhien) {
+        khiHetPhien?.call();
+      }
       rethrow;
     } on ApiException {
       rethrow;

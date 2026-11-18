@@ -7,7 +7,7 @@ import '../../models/phong.dart';
 import '../theme.dart';
 import '../widgets/anh_mang.dart';
 
-/// Form đặt lịch xem phòng: chọn ngày (DatePicker), giờ (TimePicker), ghi chú.
+/// Form đặt lịch xem phòng: chọn ngày (DatePicker) và giờ (TimePicker).
 ///
 /// Gọi POST /lich-xem-phong. Thành công trả `true` về màn chi tiết phòng bằng
 /// `Navigator.pop(true)` (yêu cầu "Navigator có trả kết quả" của đề).
@@ -22,7 +22,6 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _ghiChuController = TextEditingController();
 
   late DateTime _ngay;
   TimeOfDay _gio = const TimeOfDay(hour: 9, minute: 0);
@@ -34,12 +33,6 @@ class _BookingScreenState extends State<BookingScreen> {
     super.initState();
     final ngayMai = DateTime.now().add(const Duration(days: 1));
     _ngay = DateTime(ngayMai.year, ngayMai.month, ngayMai.day);
-  }
-
-  @override
-  void dispose() {
-    _ghiChuController.dispose();
-    super.dispose();
   }
 
   DateTime get _thoiGian => DateTime(
@@ -122,7 +115,6 @@ class _BookingScreenState extends State<BookingScreen> {
         body: {
           'phong_id': widget.phong.id,
           'thoi_gian': thoiGian.toUtc().toIso8601String(),
-          'ghi_chu': _ghiChuController.text.trim(),
         },
       );
       if (!mounted) {
@@ -240,18 +232,6 @@ class _BookingScreenState extends State<BookingScreen> {
                   style: const TextStyle(fontSize: 12.5, color: AppColors.chuMo),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ghiChuController,
-                  minLines: 3,
-                  maxLines: 5,
-                  maxLength: 300,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    labelText: 'Ghi chú cho chủ trọ (không bắt buộc)',
-                    hintText: 'Ví dụ: Tôi muốn xem phòng buổi sáng thứ Bảy…',
-                    alignLabelWithHint: true,
-                  ),
-                ),
                 if (_loi != null) ...[
                   const SizedBox(height: 8),
                   Container(

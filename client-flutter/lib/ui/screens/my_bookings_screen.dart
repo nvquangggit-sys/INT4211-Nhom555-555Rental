@@ -127,7 +127,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         body: {
           'phong_id': lich.phongId,
           'thoi_gian': lich.thoiGian?.toUtc().toIso8601String(),
-          'ghi_chu': 'Khôi phục lịch xem phòng đã hủy',
         },
       );
       if (!mounted) {
